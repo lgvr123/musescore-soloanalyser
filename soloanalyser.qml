@@ -3,21 +3,34 @@ import MuseScore 3.0
 import QtQuick.Dialogs 1.2
 import "zparkingb/selectionhelper.js" as SelHelper
 import "zparkingb/notehelper.js" as NoteHelper
+import "zparkingb/chordanalyser.js" as ChordHelper
+
+/**********************
+/* Parking B - MuseScore - Solo Analyser² plugin
+/* v1.0.1
+/* ChangeLog:
+/* 	- 1.0.0: Initial release
+/*  - 1.0.1: Using of ChordAnalyzer shared library
+/**********************************************/
 
 MuseScore {
-    menuPath: "Plugins.Solo Analayzer"
+    menuPath: "Plugins." + pluginName
     description: "Colors the notes part of each measure harmony."
-    version: "1.0"
+    version: "1.0.2"
+
+    readonly property var pluginName: "Solo Analyser"
 
     readonly property var selHelperVersion: "1.2.0"
     readonly property var noteHelperVersion: "1.0.3"
+    readonly property var chordHelperVersion: "1.0"
 
     onRun: {
 
         if ((typeof(SelHelper.checktVersion) !== 'function') || !SelHelper.checktVersion(selHelperVersion) ||
-            (typeof(NoteHelper.checktVersion) !== 'function') || !NoteHelper.checktVersion(noteHelperVersion)) {
-            console.log("Invalid zparkingb/selectionhelper.js and zparkingb/notehelper.js versions. Expecting "
-                 + selHelperVersion + " and " + noteHelperVersion + ".");
+            (typeof(NoteHelper.checktVersion) !== 'function') || !NoteHelper.checktVersion(noteHelperVersion) ||
+            (typeof(ChordHelper.checkVersion) !== 'function') || !ChordHelper.checkVersion(chordHelperVersion)) {
+            console.log("Invalid zparkingb/selectionhelper.js, zparkingb/notehelper.js or zparkingb/chordanalyser.js versions. Expecting "
+                 + selHelperVersion + " and " + noteHelperVersion + " and " + chordHelperVersion + ".");
             invalidLibraryDialog.open();
             return;
         }
@@ -63,7 +76,7 @@ MuseScore {
                         //console.log("  (" + i + ") " + ann.userName() + " / " + ann.text + " / " + ann.harmonyType);
                         if (ann.type === Element.HARMONY) {
                             // keeping 1st Chord
-                            var c = chordFromText(ann.text);
+                            var c = ChordHelper.chordFromText(ann.text);
                             if (c != null) {
                                 curChord = c;
                                 break;
@@ -104,6 +117,8 @@ MuseScore {
                         degree = "7";
                     } else if (curChord.keys.indexOf(p) >= 0) {
                         color = "purple"; //"green"; //slategray dodgerblue
+                    } else if (curChord.outside.indexOf(p) >= 0) {
+                        color = "red";
                     } else {
                         color = "black";
                     }
@@ -163,210 +178,13 @@ MuseScore {
 
     }
 
-    function chordFromText(text) {
-
-        if (text.slice(0, 1) === "(")
-            text = text.substr(1);
-
-        // Root
-        var root = text.slice(0, 1).toUpperCase();
-        var alt = text.slice(1, 2);
-        if ("bb" === text.slice(1, 3)) {
-            alt = 'FLAT2';
-            text = text.substr(3);
-        } else if ("x" === alt) {
-            alt = 'SHARP2';
-            text = text.substr(2);
-        } else if ("b" === alt) {
-            alt = 'FLAT';
-            text = text.substr(2);
-        } else if ("#" === alt) {
-            alt = 'SHARP';
-            text = text.substr(2);
-        } else {
-            alt = 'NONE';
-            text = text.substr(1);
-        }
-
-        var ftpcs = NoteHelper.tpcs.filter(function (e) {
-            return ((e.raw === root) && (e.accidental === alt));
-        });
-
-        var tpc;
-        if (ftpcs.length > 0) {
-            tpc = ftpcs[0];
-        } else {
-            console.log("!! Could not found >>" + root + "-" + alt + "<<");
-            return null;
-        }
-
-        // Chord type
-        var n3 = null,
-        n5 = null,
-        n7 = null;
-        var keys = [0];
-
-        text = new chordTextClass(text);
-
-        // Base
-        // M, Ma, Maj, ma, maj
-        if (text.startsWith("Maj") || text.startsWith("Ma") || text.startsWith("M") || text.startsWith("maj") || text.startsWith("ma")) {
-            n3 = 4;
-            n5 = 7;
-        }
-        // m, mi, min, -
-        else if (text.startsWith("min") || text.startsWith("mi") || text.startsWith("m") || text.startsWith("-")) {
-            n3 = 3;
-            n5 = 7;
-        }
-
-        // dim,o
-        else if (text.startsWith("dim") || text.startsWith("o")) {
-            n3 = 3;
-            n5 = 4;
-            n7 = 9;
-        }
-
-        // Half-dim
-        else if (text.startsWith("0")) {
-            n3 = 3;
-            n5 = 4;
-            n7 = 10;
-        }
-
-        // Aug
-        else if (text.startsWith("aug") || text.startsWith("+")) {
-            n3 = 3;
-            n5 = 6;
-        }
-
-        // Maj7
-        else if (text.startsWith("t7")) {
-            n3 = 3;
-            n5 = 7;
-            n7 = 11;
-        }
-
-        // sus2
-        else if (text.startsWith("sus2")) {
-            n3 = 2;
-            n5 = 7;
-        }
-
-        // sus4
-        else if (text.startsWith("sus4")) {
-            n3 = 5;
-            n5 = 7;
-        }
-
-        // No indication => Major
-        else {
-            n3 = 4;
-            n5 = 7;
-        }
-
-        // Compléments
-        if (text.includes("7")) {
-            n7 = 10;
-        }
-
-        if (text.includes("b5")) {
-            n5 = 6;
-        } else if (text.includes("b5")) {
-            n5 = 6;
-        }
-
-        if (text.includes("b9")) {
-            keys.push(1)
-        } else if (text.includes("#9")) {
-            keys.push(3)
-        } else if (text.includes("9")) {
-            keys.push(2)
-        }
-
-        if (text.includes("b11")) {
-            keys.push(4)
-        } else if (text.includes("#11")) {
-            keys.push(6)
-        } else if (text.includes("11")) {
-            keys.push(5)
-        }
-
-        if (text.includes("b13")) {
-            keys.push(8)
-        } else if (text.includes("#13")) {
-            keys.push(10)
-        } else if (text.includes("13")) {
-            keys.push(9)
-        }
-
-        console.log("After analysis : >>" + text + "<<");
-
-        if (n3 != null)
-            keys.push(n3);
-        if (n5 != null)
-            keys.push(n5);
-        if (n7 != null)
-            keys.push(n7);
-
-        var chord = new chordClass(tpc, text, n3, n5, n7, keys);
-
-        return chord;
-    }
-
-    function chordTextClass(str) {
-        var s = str;
-        this.replace = function (r1, r2) {
-            s = s.replace(r1, r2);
-        }
-        this.toString = function () {
-            return s;
-        }
-
-        this.startsWith = function (test) {
-            if (s.startsWith(test)) {
-                s = s.substr(test.length);
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        this.includes = function (test) {
-            var pos = s.indexOf(test);
-
-            if (pos >= 0) {
-                s = s.substr(0, pos) + s.substr(pos + test.length);
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
-
-    function chordClass(tpc, name, n3, n5, n7, keys) {
-        this.pitch = tpc.pitch;
-        this.name = name;
-        this.root = tpc.raw;
-        this.accidental = tpc.accidental;
-        this.n3 = n3;
-        this.n5 = n5;
-        this.n7 = n7;
-        this.keys = (!keys || (keys == null)) ? [] : keys;
-
-        this.toString = function () {
-            return this.root + " " + this.accidental + " " + this.name + " " + keys.toString(); ;
-        };
-
-    }
-
     MessageDialog {
         id: invalidLibraryDialog
         icon: StandardIcon.Critical
         standardButtons: StandardButton.Ok
         title: 'Invalid libraries'
-        text: "Invalid 'zparkingb/selectionhelper.js' and 'zparkingb/notehelper.js' versions.\nExpecting "
-         + selHelperVersion + " and " + noteHelperVersion + ".\nSolo Analyser will stop here."
+        text: "Invalid zparkingb/selectionhelper.js, zparkingb/notehelper.js or zparkingb/chordanalyser.js versions.\nExpecting "
+         + selHelperVersion + " and " + noteHelperVersion + " and " + chordHelperVersion + ".\n" + pluginName + " will stop here."
         onAccepted: {
             Qt.quit()
         }
