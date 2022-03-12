@@ -5,13 +5,14 @@
 /* 	- 1.0.0: Initial release
 /*  - 1.0.1: The 7th degree was sometime erased
 /*  - 1.2.0: Exporting now the chord notes instead of n3/n5/n7 erased
+/*  - 1.2.1: Ajout de "^7" comme équivalent à "t7"
 /**********************************************/
 // -----------------------------------------------------------------------
 // --- Vesionning-----------------------------------------
 // -----------------------------------------------------------------------
 
 function checkVersion(expected) {
-    var version = "1.2.0";
+    var version = "1.2.1";
 
     var aV = version.split('.').map(function (v) {
         return parseInt(v);
@@ -152,7 +153,7 @@ function scaleFromText(text) {
     }
 
     // Maj7
-    else if (text.startsWith("t7")) {
+    else if (text.startsWith("t7") || text.startsWith("^7")) {
         console.log("Starts with t7");
         n3 = 4;
         n5 = 7;
