@@ -6,8 +6,8 @@ import "zparkingb/notehelper.js" as NoteHelper
 import "zparkingb/chordanalyser.js" as ChordHelper
 
 /**********************
-/* Parking B - MuseScore - Solo Analyser² plugin
-/* v1.0.1
+/* Parking B - MuseScore - Solo Analyser plugin
+/* v1.1.0
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /*  - 1.0.1: Using of ChordAnalyzer shared library
@@ -16,13 +16,15 @@ import "zparkingb/chordanalyser.js" as ChordHelper
 MuseScore {
     menuPath: "Plugins." + pluginName
     description: "Colors the notes part of each measure harmony."
-    version: "1.0.2"
+    version: "1.1.0"
 
     readonly property var pluginName: "Solo Analyser"
 
     readonly property var selHelperVersion: "1.2.0"
     readonly property var noteHelperVersion: "1.0.3"
-    readonly property var chordHelperVersion: "1.0"
+    readonly property var chordHelperVersion: "1.2.0"
+
+    property var colorNonChord: false // should be managed by a GUI
 
     onRun: {
 
@@ -104,25 +106,27 @@ MuseScore {
                         p += 12;
                     var color = null;
                     if (p == 0) {
-                        color = "darkblue"; //"crimson";
+                        color = "#03A60E" //"darkblue"; //"crimson";
                         degree = "1";
-                    } else if ((curChord.n3 != null) && (p == curChord.n3)) {
-                        color = "slateblue"; //"magenta";
-                        degree = "3";
-                    } else if ((curChord.n5 != null) && (p == curChord.n5)) {
-                        color = "blue"; //tomato
-                        degree = "5";
-                    } else if ((curChord.n7 != null) && (p == curChord.n7)) {
-                        color = "teal"; //"purple";
-                        degree = "7";
-                    } else if (curChord.keys.indexOf(p) >= 0) {
-                        color = "purple"; //"green"; //slategray dodgerblue
-                    } else if (curChord.outside.indexOf(p) >= 0) {
-                        color = "red";
                     } else {
-                        color = "black";
+                        var roles = curChord.chordnotes.filter(function (e) {
+                            return (parseInt(e.note, 10) === p);
+                        });
+
+                        if (roles.length != 0) {
+                            console.log("ROLE FOUND (" + roles.length + "): " + roles[0].note + "-" + roles[0].role);
+                            color = "dodgerblue";
+                            degree = roles[0].role;
+                        } else if (curChord.keys.indexOf(p) >= 0 && colorNonChord) {
+                            color = "sandybrown"; //"green"; //slategray dodgerblue
+                        } else if (curChord.outside.indexOf(p) >= 0) {
+                            color = "red";
+                        } else {
+                            color = "black";
+                        }
+
+                        console.log(note.pitch + "/" + curChord.pitch + " ==> " + p + " ==> " + color);
                     }
-                    console.log(note.pitch + "/" + curChord.pitch + " ==> " + p + " ==> " + color);
                 } else
                     // no current chord, so resetting the color
                 {
@@ -137,7 +141,6 @@ MuseScore {
         }
 
     }
-
     function writeDegree(note, degree) {
 
         const degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -152,10 +155,10 @@ MuseScore {
             for (var j = 0; j < el.length; j++) {
                 var e = el[j];
                 if (e.type == Element.FINGERING) {
-                    if (degrees.indexOf(e.text) >= 0) {
-                        eltext = e;
-                        break;
-                    }
+                    // if (degrees.indexOf(e.text) >= 0) {
+                    if (e.text.match(/^((b|#)?[0-9]{1,2})?$/gm) != null);
+                    eltext = e;
+                    break;
                 }
             }
         }
