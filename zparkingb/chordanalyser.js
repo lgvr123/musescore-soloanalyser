@@ -1,19 +1,20 @@
 /**********************
 /* Parking B - MuseScore - Chord analyser
-/* v1.2.2
+/* v1.2.3
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /*  - 1.0.1: The 7th degree was sometime erased
 /*  - 1.2.0: Exporting now the chord notes instead of n3/n5/n7 erased
 /*  - 1.2.1: Ajout de "^7" comme équivalent à "t7"
 /*  - 1.2.2: Ajout des 7th dans les accords 9
+/*  - 1.2.3: Ajout des maj7
 /**********************************************/
 // -----------------------------------------------------------------------
 // --- Vesionning-----------------------------------------
 // -----------------------------------------------------------------------
 
 function checkVersion(expected) {
-    var version = "1.2.1";
+    var version = "1.2.3";
 
     var aV = version.split('.').map(function (v) {
         return parseInt(v);
@@ -189,8 +190,12 @@ function scaleFromText(text) {
 
     // Compléments
     // ..7..
+    if (n7 == null && (text.includes("maj7")|| text.includes("ma7") || text.startsWith("t7") || text.startsWith("^7"))) {
+        console.log("Has M7");
+        n7 = 11;
+    } else 
     if (n7 == null && text.includes("7")) {
-        console.log("Has 7");
+        console.log("Has m7");
         n7 = 10;
     };
 
@@ -247,7 +252,9 @@ function scaleFromText(text) {
             "note": n9,
             "role": "9"
         });
-    } else if (def2 != null) {
+    } 
+	
+	if (def2 != null) { // 15/3: alignement sur Supercollider
         keys.push(def2)
     } else {
         keys.push(2)
