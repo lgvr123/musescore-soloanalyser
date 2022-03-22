@@ -7,24 +7,27 @@ import "zparkingb/chordanalyser.js" as ChordHelper
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser plugin
-/* v1.1.0
+/* v1.2.0
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /*  - 1.0.1: Using of ChordAnalyzer shared library
+/*  - 1.1.0: New coloring approach
+/*  - 1.2.0: Colors and names (optionnaly) all the notes
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins." + pluginName
     description: "Colors the notes part of each measure harmony."
-    version: "1.1.0"
+    version: "1.2.0"
 
     readonly property var pluginName: "Solo Analyser"
 
     readonly property var selHelperVersion: "1.2.0"
     readonly property var noteHelperVersion: "1.0.3"
-    readonly property var chordHelperVersion: "1.2.0"
+    readonly property var chordHelperVersion: "1.2.4"
 
     property var colorNonChord: false // should be managed by a GUI
+    property var nameNonChord: true // should be managed by a GUI
 
     onRun: {
 
@@ -107,24 +110,31 @@ MuseScore {
                     var color = null;
                     if (p == 0) {
                         color = "#03A60E" //"darkblue"; //"crimson";
-                        degree = "1";
+                            degree = "1";
                     } else {
-                        var roles = curChord.chordnotes.filter(function (e) {
-                            return (parseInt(e.note, 10) === p);
-                        });
+                        var role = curChord.getChordNote(p);
 
-                        if (roles.length != 0) {
-                            console.log("ROLE FOUND (" + roles.length + "): " + roles[0].note + "-" + roles[0].role);
+                        if (role !== undefined) {
+                            console.log("ROLE FOUND : " + role.note + "-" + role.role);
                             color = "dodgerblue";
-                            degree = roles[0].role;
-                        } else if (curChord.keys.indexOf(p) >= 0 && colorNonChord) {
-                            color = "sandybrown"; //"green"; //slategray dodgerblue
+                            degree = role.role;
                         } else if (curChord.outside.indexOf(p) >= 0) {
                             color = "red";
+                        } else if (curChord.keys.indexOf(p) >= 0 && colorNonChord) {
+                            color = "sandybrown"; //"green"; //slategray dodgerblue
                         } else {
                             color = "black";
                         }
 
+						// Option de donner un nom à toutes les notes
+                        if (nameNonChord && degree === null) {
+                            var role = curChord.getScaleNote(p);
+
+                            if (role !== undefined) {
+                                console.log("ROLE FOUND in SCALE: " + role.note + "-" + role.role);
+                                degree = role.role;
+                            }
+                        }
                         console.log(note.pitch + "/" + curChord.pitch + " ==> " + p + " ==> " + color);
                     }
                 } else
@@ -139,6 +149,8 @@ MuseScore {
             }
 
         }
+
+        Qt.quit();
 
     }
     function writeDegree(note, degree) {
