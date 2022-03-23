@@ -10,6 +10,7 @@
 /*  - 1.2.3: Ajout des maj7
 /*  - 1.2.4: Exporting all scale roles
 /*  - 1.2.5: Ajout des maj7 (2)
+/*  - 1.2.6: Bug dans Workoutbuilder avec 1.2.4 (Accords 9, 11 et 13)
 
 /**********************************************/
 // -----------------------------------------------------------------------
@@ -80,6 +81,8 @@ function chordFromText(text) {
     // var chord = new chordClass(tpc, text, n3, n5, n7, keys);
     var chord = new chordClass(tpc, text, scale);
 
+    console.log(">>>" + chord);
+
     return chord;
 }
 
@@ -91,6 +94,7 @@ function scaleFromText(text) {
     n5 = null,
     n7 = null,
     def2 = null,
+    def3 = null,
     def4 = null,
     def6 = null,
     def7 = null;
@@ -111,8 +115,8 @@ function scaleFromText(text) {
 
     // Base
     // M, Ma, Maj, ma, maj
-    if (text.startsWith("Maj7") || text.startsWith("Ma7") || text.startsWith("M7") || text.startsWith("maj7") || text.startsWith("ma7") || 
-	text.startsWith("t7") || text.startsWith("^7")) {
+    if (text.startsWith("Maj7") || text.startsWith("Ma7") || text.startsWith("M7") || text.startsWith("maj7") || text.startsWith("ma7") ||
+        text.startsWith("t7") || text.startsWith("^7")) {
         console.log("Starts with Maj7, t7, ...");
         n3 = 4;
         n5 = 7;
@@ -176,6 +180,7 @@ function scaleFromText(text) {
     else if (text.startsWith("sus2")) {
         console.log("Starts with sus2");
         n2 = 2;
+		def3=4; //pourrait être 3 ou 4
         n5 = 7;
         def6 = 9; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
     }
@@ -184,6 +189,7 @@ function scaleFromText(text) {
     else if (text.startsWith("sus4")) {
         console.log("Starts with sus4");
         n4 = 5;
+		def3=4; //pourrait être 3 ou 4
         n5 = 7;
         def6 = 9; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
     }
@@ -210,11 +216,13 @@ function scaleFromText(text) {
 
     // ..3..
     if (n3 != null) {
-        keys.push(n3);
+        _ptok(keys,n3,"n3");
         chordnotes.push({
             "note": n3,
             "role": "3"
         });
+    } else if (def3 != null) {
+        _ptok(keys,def3,"def3");
     }
 
     // ..5..
@@ -227,13 +235,13 @@ function scaleFromText(text) {
     }
 
     if (n5 != null) {
-        keys.push(n5);
+        _ptok(keys,n5,"n5");
         chordnotes.push({
             "note": n5,
             "role": "5"
         });
     } else {
-        // pas de défault 5
+        _ptok(keys,7,"def5 (=7)");
     }
 
     // ..2/9..
@@ -241,7 +249,7 @@ function scaleFromText(text) {
     if (text.includes("b9")) {
         console.log("Has b9");
         n9 = 1;
-        keys.push(n9);
+        _ptok(keys,n9,"b9");
         chordnotes.push({
             "note": n9,
             "role": "b9"
@@ -249,14 +257,14 @@ function scaleFromText(text) {
     } else if (text.includes("#9")) {
         console.log("Has #9");
         n9 = 3;
-        keys.push(n9);
+        _ptok(keys,n9,"#9");
         chordnotes.push({
             "note": n9,
             "role": "#9"
         });
     } else if (text.includes("9")) {
         n9 = 2;
-        keys.push(n9);
+        _ptok(keys,n9,"9");
         chordnotes.push({
             "note": n9,
             "role": "9"
@@ -264,16 +272,16 @@ function scaleFromText(text) {
     }
 
     if (n2 != null) {
-        keys.push(n2);
+        _ptok(keys,n2,"n2");
         chordnotes.push({
             "note": n2,
             "role": "2"
         });
-    } else {
+    } else if (n9 == null) {
         if (def2 == null) { // 15/3: alignement sur Supercollider
             def2 = 2;
         }
-        keys.push(def2);
+        _ptok(keys,def2,"def2");
         if (getNote(chordnotes, def2) === undefined)
             allnotes.push({
                 "note": def2,
@@ -288,40 +296,44 @@ function scaleFromText(text) {
     }
 
     // ..4/11..
+    var n11 = null;
     if (text.includes("b11")) {
         console.log("Has b11");
-        keys.push(4);
+        n11 = 4;
+        _ptok(keys,n11,"b11");
         chordnotes.push({
-            "note": 4,
+            "note": n11,
             "role": "b11"
         });
     } else if (text.includes("#11")) {
         console.log("Has #11");
-        keys.push(6)
+        n11 = 6;
+        _ptok(keys,n11,"#11");
         chordnotes.push({
-            "note": 6,
+            "note": n11,
             "role": "#11"
         })
     } else if (text.includes("11")) {
         console.log("Has 11");
-        keys.push(5);
+        n11 = 5;
+        _ptok(keys,n11,"11");
         chordnotes.push({
-            "note": 5,
+            "note": n11,
             "role": "11"
         });
 
     }
 
     if (n4 != null) {
-        keys.push(n4);
+        _ptok(keys,n4,"n4");
         chordnotes.push({
             "note": n4,
             "role": "4"
         });
-    } else {
+    } else if (n11 == null) {
         if (def4 == null)
             def4 = 5;
-        keys.push(def4);
+        _ptok(keys,def4,"def4");
         if (getNote(chordnotes, def4) === undefined)
             allnotes.push({
                 "note": def4,
@@ -333,78 +345,88 @@ function scaleFromText(text) {
     // ..6/13..
     if (text.includes("6")) {
         console.log("Has 6");
-        keys.push(9); // "So in the case of min6 chords always always always make the 6th a major 6th."
+        _ptok(keys,9,"(n)6"); // "So in the case of min6 chords always always always make the 6th a major 6th."
         chordnotes.push({
             "note": 9,
             "role": "6"
         });
         def6 = null;
     }
-    if (text.includes("b13")) {
-        console.log("Has b13");
-        keys.push(8);
-        chordnotes.push({
-            "note": 8,
-            "role": "b13"
-        });
-    } else if (text.includes("#13")) {
-        console.log("Has #13");
-        keys.push(10);
-        chordnotes.push({
-            "note": 10,
-            "role": "#13"
-        });
-    } else if (text.includes("13")) {
-        console.log("Has 13");
-        keys.push(9);
-        chordnotes.push({
-            "note": 9,
-            "role": "13"
-        });
-    } else {
-        if (def6 == null)
-            def6 = 9;
-        keys.push(def6);
-        if (getNote(chordnotes, def6) === undefined)
-            allnotes.push({
-                "note": def6,
-                "role": "6"
+    var n13 = null
+        if (text.includes("b13")) {
+            console.log("Has b13");
+            n13 = 8;
+            _ptok(keys,n13,"b13");
+            chordnotes.push({
+                "note": n13,
+                "role": "b13"
             });
-    }
+        } else if (text.includes("#13")) {
+            console.log("Has #13");
+            n13 = 10;
+            _ptok(keys,n13,"#13");
+            chordnotes.push({
+                "note": n13,
+                "role": "#13"
+            });
+        } else if (text.includes("13")) {
+            console.log("Has 13");
+            n13 = 9;
+            _ptok(keys,n13,"13");
+            chordnotes.push({
+                "note": n13,
+                "role": "13"
+            });
+        } else {
+            if (def6 == null)
+                def6 = 9;
+            _ptok(keys,def6,"def6");
+            if (getNote(chordnotes, def6) === undefined)
+                allnotes.push({
+                    "note": def6,
+                    "role": "6"
+                });
+        }
 
-    //..7..
-    if (n7 != null) {
-        keys.push(n7);
-        chordnotes.push({
-            "note": n7,
-            "role": "7"
-        });
-    } else {
-        if (def7 == null)
-            def7 = 11;
-        keys.push(def4);
-        if (getNote(chordnotes, def7) === undefined)
-            allnotes.push({
-                "note": def7,
+        //..7..
+        if (n7 != null) {
+            _ptok(keys,n7,"n7");
+            chordnotes.push({
+                "note": n7,
                 "role": "7"
             });
-    }
+        } else {
+            if (def7 == null)
+                def7 = 11;
+            _ptok(keys,def7,"def7");
+            if (getNote(chordnotes, def7) === undefined)
+                allnotes.push({
+                    "note": def7,
+                    "role": "7"
+                });
+        }
 
-    // Looking for all notes
-    allnotes = chordnotes.concat(allnotes);
+        // Looking for all notes
+        allnotes = chordnotes.concat(allnotes);
     for (var n = 1; n < 12; n++) {
-        if (getNote(allnotes, n) === undefined)
+        if (getNote(allnotes, n) === undefined) {
+			var dn=(n3==null && n==def3)?"3":default_names[n];
             allnotes.push({
                 "note": n,
-                "role": default_names[n]
+                "role": dn
             });
-
+		}
     }
 
     console.log("After analysis : >>" + text + "<<");
 
     var scale = new scaleClass(keys, chordnotes, allnotes);
     return scale;
+}
+
+function _ptok(keys, value, comment) {
+	console.log("....pushing >>"+value+"<< ("+comment+")");
+	keys.push(value);
 }
 
 function chordTextClass(str) {
@@ -529,9 +551,23 @@ function scaleClass(keys, chordnotes, allnotes, outside) {
     });
 
     this.toString = function () {
-        return chordnotes.map(function (e) {
+        return chordnotes
+        .sort(function (a, b) {
+            return a.note - b.note;
+        })
+        .map(function (e) {
             return e.role + ": " + e.note;
-        }).join(', ');
+        }).join(', ') + "  === " +
+        allnotes
+        .sort(function (a, b) {
+            return a.note - b.note;
+        })
+        .map(function (e) {
+            return e.role + ": " + e.note;
+        }).join(', ') + "  === " +
+		keys.sort(function(a,b) {return a-b}).join(', ');
+		;
+
     };
 
 }
