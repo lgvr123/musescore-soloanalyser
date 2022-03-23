@@ -1,6 +1,6 @@
 /**********************
 /* Parking B - MuseScore - Chord analyser
-/* v1.2.4
+/* v1.2.5
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /*  - 1.0.1: The 7th degree was sometime erased
@@ -9,6 +9,8 @@
 /*  - 1.2.2: Ajout des 7th dans les accords 9
 /*  - 1.2.3: Ajout des maj7
 /*  - 1.2.4: Exporting all scale roles
+/*  - 1.2.5: Ajout des maj7 (2)
+
 /**********************************************/
 // -----------------------------------------------------------------------
 // --- Vesionning-----------------------------------------
@@ -16,7 +18,7 @@
 var default_names = ["1", "b9", "2", "#9", "b11", "4", "#11", "(5)", "m6", "M6", "m7", "M7"];
 
 function checkVersion(expected) {
-    var version = "1.2.4";
+    var version = "1.2.5";
 
     var aV = version.split('.').map(function (v) {
         return parseInt(v);
@@ -109,7 +111,17 @@ function scaleFromText(text) {
 
     // Base
     // M, Ma, Maj, ma, maj
-    if (text.startsWith("Maj") || text.startsWith("Ma") || text.startsWith("M") || text.startsWith("maj") || text.startsWith("ma")) {
+    if (text.startsWith("Maj7") || text.startsWith("Ma7") || text.startsWith("M7") || text.startsWith("maj7") || text.startsWith("ma7") || 
+	text.startsWith("t7") || text.startsWith("^7")) {
+        console.log("Starts with Maj7, t7, ...");
+        n3 = 4;
+        n5 = 7;
+        def6 = 9; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
+        n7 = 11;
+        outside = outside.concat([1, 3, 6, 8]);
+    }
+    // M, Ma, Maj, ma, maj
+    else if (text.startsWith("Maj") || text.startsWith("Ma") || text.startsWith("M") || text.startsWith("maj") || text.startsWith("ma")) {
         console.log("Starts with Maj/Ma/M/maj/ma");
         n3 = 4;
         n5 = 7;
@@ -158,15 +170,6 @@ function scaleFromText(text) {
         n5 = 6;
         def6 = 9; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
         def7 = 11; // Je force une 7ème par défaut. Qui sera peut-être écrasée après.
-    }
-
-    // Maj7
-    else if (text.startsWith("t7") || text.startsWith("^7")) {
-        console.log("Starts with t7");
-        n3 = 4;
-        n5 = 7;
-        def6 = 9; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
-        n7 = 11;
     }
 
     // sus2
