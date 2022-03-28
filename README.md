@@ -6,6 +6,9 @@ This basic version has no User Interface. It will apply to whatever is selected.
 ## New in 1.2.0
 Only the notes defined by the chord will be highlighted, using their label in the chord. E.g. the 6th will be higglighted and labelled "6" in a "G-6" chord, "13" in "Cadd13" chord.
 
+## What's next ?
+An optional interactive plugin where the behaviour of the plugin could be fine-tuned.
+
 ## Installation
 * If using MuseScore version 3 then download the plugin and unzip it.
 * Install using the instructions in the MuseScore 3.x Handbook, which typically involves copying the QML file to the local MuseScore Plugin directory.
