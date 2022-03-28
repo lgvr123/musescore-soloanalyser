@@ -7,24 +7,26 @@ import "zparkingb/chordanalyser.js" as ChordHelper
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser plugin
-/* v1.2.0
+/* v1.2.1
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /*  - 1.0.1: Using of ChordAnalyzer shared library
 /*  - 1.1.0: New coloring approach
 /*  - 1.2.0: Colors and names (optionnaly) all the notes
+/*  - 1.2.1: Uses the bass note if specified in the chord
+/*  - 1.2.1: Minor improvments on the chord recognission
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins." + pluginName
     description: "Colors the notes part of each measure harmony."
-    version: "1.2.0"
+    version: "1.2.1"
 
     readonly property var pluginName: "Solo Analyser"
 
     readonly property var selHelperVersion: "1.2.0"
     readonly property var noteHelperVersion: "1.0.3"
-    readonly property var chordHelperVersion: "1.2.4"
+    readonly property var chordHelperVersion: "1.2.7"
 
     property var colorNonChord: false // should be managed by a GUI
     property var nameNonChord: true // should be managed by a GUI
