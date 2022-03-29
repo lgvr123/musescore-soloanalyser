@@ -1,6 +1,6 @@
 /**********************
 /* Parking B - MuseScore - Chord analyser
-/* v1.2.5
+/* v1.2.8
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /*  - 1.0.1: The 7th degree was sometime erased
@@ -13,6 +13,7 @@
 /*  - 1.2.6: Bug dans Workoutbuilder avec 1.2.4 (Accords 9, 11 et 13)
 /*  - 1.2.7: Ajout de la gestion de la basse
 /*  - 1.2.7: Correction sur les accords majeurs non 7 (ex "C")
+/*  - 1.2.8: Export de la position relative de la basse
 
 /**********************************************/
 // -----------------------------------------------------------------------
@@ -21,7 +22,7 @@
 var default_names = ["1", "b9", "2", "#9", "b11", "4", "#11", "(5)", "m6", "M6", "m7", "M7"];
 
 function checkVersion(expected) {
-    var version = "1.2.7";
+    var version = "1.2.8";
 
     var aV = version.split('.').map(function (v) {
         return parseInt(v);
@@ -481,11 +482,17 @@ function chordClass(tpc, name, scale, basstpc) {
     this.root = tpc.raw;
     this.accidental = tpc.accidental;
     this.scale = scale;
-    this.bass_pitch = (basstpc != null) ? basstpc.pitch : null;
-    this.bass_accidental = (basstpc != null) ? basstpc.accidental : null;
-    this.bass_root = (basstpc != null) ? basstpc.raw : null;
-
-    Object.defineProperty(this, "keys", {
+	if (basstpc == null) {
+	    this.bass = null;
+	} else {
+	    this.bass = {
+	        "key": ((basstpc.pitch - tpc.pitch + 12) % 12),
+	        "pitch": basstpc.pitch,
+	        "accidental": basstpc.accidental,
+	        "root": basstpc.raw
+	    }
+	}
+	Object.defineProperty(this, "keys", {
         get: function () {
             return this.scale.keys;
         }

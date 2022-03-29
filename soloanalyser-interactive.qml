@@ -5,7 +5,7 @@ import QtQuick.Window 2.2
 import QtQuick.Dialogs 1.2
 import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts 1.3
-import FileIO 3.0
+import Qt.labs.settings 1.0
 
 import "zparkingb/selectionhelper.js" as SelHelper
 import "zparkingb/notehelper.js" as NoteHelper
@@ -17,19 +17,13 @@ import "soloanalyser"
 /* Parking B - MuseScore - Solo Analyser plugin
 /* v1.3.0
 /* ChangeLog:
-/* 	- 1.0.0: Initial release
-/*  - 1.0.1: Using of ChordAnalyzer shared library
-/*  - 1.1.0: New coloring approach
-/*  - 1.2.0: Colors and names (optionnaly) all the notes
-/*  - 1.2.1: Uses the bass note if specified in the chord
-/*  - 1.2.1: Minor improvments on the chord recognission
-/*  - 1.3.0: Code moved to a library
+/*  - 1.3.0: Initial version based on SoloAnalyser 1.3.0
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins." + pluginName
-    description: "Colors the notes part of each measure harmony."
-    version: "1.2.1"
+    description: "Colors and names the notes based on their role if chords/harmonies."
+    version: "1.3.0"
 
     readonly property var pluginName: "Solo Analyser - Interactive"
 
@@ -56,7 +50,49 @@ MuseScore {
             return;
         }
 
-        //Core.analyse();
+        // 1) Read config file
+		// AUTOMATIC
+
+        // 2) push to screen
+
+        select(lstColorNote, settings.colorNotes);
+        select(lstNameNote, settings.nameNotes);
+
+        rootColorChosser.color = settings.rootColor;
+        bassColorChosser.color = settings.bassColor;
+        chordColorChosser.color = settings.chordColor;
+        scaleColorChosser.color = settings.scaleColor;
+        errorColorChosser.color = settings.errorColor;
+
+    }
+
+    function select(control, value) {
+        var index = 0;
+        for (var i = 0; i < control.model.length; i++) {
+            if (control.model[i].value == value) {
+                index = i;
+                break;
+            }
+        }
+        control.currentIndex = index;
+
+    }
+    function get(control) {
+        return control.model[control.currentIndex].value;
+
+    }
+
+    Settings {
+        id: settings
+        category: "SoloAnalyser"
+        // in options
+        property var rootColor: Core.defRootColor
+        property var bassColor: Core.defBassColor
+        property var chordColor: Core.defChordColor
+        property var scaleColor: Core.defScaleColor
+        property var errorColor: Core.defErrorColor
+        property var colorNotes: Core.defColorNotes
+        property var nameNotes: Core.defNameNotes
     }
 
     ColumnLayout {
@@ -64,7 +100,7 @@ MuseScore {
         GridLayout {
             id: controls
 
-			Layout.margins: 10
+            Layout.margins: 10
             columnSpacing: 10
             rowSpacing: 10
             columns: 2
@@ -78,7 +114,7 @@ MuseScore {
                 Layout.fillHeight: false
             }
 
-            ComboBox {
+            NiceComboBox {
                 //Layout.fillWidth : true
                 id: lstColorNote
                 model: [{
@@ -93,24 +129,6 @@ MuseScore {
                     }
                 ]
 
-                delegate: ItemDelegate { // requiert QuickControls 2.2
-                    contentItem: Text {
-                        id: cnci
-                        text: modelData.text
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    highlighted: lstColorNote.highlightedIndex === index
-                }
-
-                contentItem: Text {
-
-                    text: lstColorNote.model[lstColorNote.currentIndex].text
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.margins: 5
-                    verticalAlignment: Text.AlignVCenter
-
-                }
-
             }
 
             Label {
@@ -120,7 +138,7 @@ MuseScore {
                 Layout.fillHeight: false
             }
 
-            ComboBox {
+            NiceComboBox {
                 //Layout.fillWidth : true
                 id: lstNameNote
                 model: [{
@@ -135,23 +153,6 @@ MuseScore {
                     }
                 ]
 
-                delegate: ItemDelegate { // requiert QuickControls 2.2
-                    contentItem: Text {
-                        text: modelData.text
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    highlighted: lstNameNote.highlightedIndex === index
-                }
-
-                contentItem: Text {
-
-                    text: lstNameNote.model[lstNameNote.currentIndex].text
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.margins: 5
-                    verticalAlignment: Text.AlignVCenter
-
-                }
-
             }
 
             Label {
@@ -161,12 +162,30 @@ MuseScore {
                 id: rootColorChosser
                 width: 50
                 height: 30
-                color: Core.rootColor
+                color: "gray"
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
                         colorDialog.color = rootColorChosser.color
                             colorDialog.target = rootColorChosser;
+                        colorDialog.open();
+                    }
+                }
+            }
+
+            Label {
+                text: "Bass:"
+            }
+            Rectangle {
+                id: bassColorChosser
+                width: 50
+                height: 30
+                color: "gray"
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        colorDialog.color = bassColorChosser.color
+                            colorDialog.target = bassColorChosser;
                         colorDialog.open();
                     }
                 }
@@ -179,7 +198,7 @@ MuseScore {
                 id: chordColorChosser
                 width: 50
                 height: 30
-                color: Core.chordColor
+                color: "gray"
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
@@ -197,7 +216,7 @@ MuseScore {
                 id: scaleColorChosser
                 width: 50
                 height: 30
-                color: Core.scaleColor
+                color: "gray"
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
@@ -215,7 +234,7 @@ MuseScore {
                 id: errorColorChosser
                 width: 50
                 height: 30
-                color: Core.errorColor
+                color: "gray"
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
@@ -232,8 +251,7 @@ MuseScore {
             Layout.fillHeight: true
         }
         RowLayout {
-			
-			
+
             id: panButtons
             Layout.fillWidth: true
             Layout.fillHeight: false
@@ -242,18 +260,35 @@ MuseScore {
                 implicitHeight: buttonBox.contentItem.height
 
                 text: "Reset"
-                onClicked: Core.restToDefault()
+                onClicked: {
+        settings.rootColor= Core.defRootColor
+        settings.bassColor= Core.defBassColor
+        settings.chordColor= Core.defChordColor
+        settings.scaleColor= Core.defScaleColor
+        settings.errorColor= Core.defErrorColor
+        settings.colorNotes= Core.defColorNotes
+        settings.nameNotes= Core.defNameNotes
+					
+					        select(lstColorNote, settings.colorNotes);
+        select(lstNameNote, settings.nameNotes);
+
+        rootColorChosser.color = settings.rootColor;
+        bassColorChosser.color = settings.bassColor;
+        chordColorChosser.color = settings.chordColor;
+        scaleColorChosser.color = settings.scaleColor;
+        errorColorChosser.color = settings.errorColor;
+
+
+                }
 
                 ToolTip.text: "Reset to default values"
                 hoverEnabled: true
             }
 
-
             Item { // spacer // DEBUG Item/Rectangle
                 implicitHeight: 10
                 Layout.fillWidth: true
             }
-
 
             DialogButtonBox {
                 standardButtons: DialogButtonBox.Close
@@ -272,8 +307,17 @@ MuseScore {
 
                 onAccepted: {
                     // push values to backend
+                    settings.rootColor = rootColorChosser.color;
+                    settings.bassColor = bassColorChosser.color;
+                    settings.chordColor = chordColorChosser.color;
+                    settings.scaleColor = scaleColorChosser.color;
+                    settings.errorColor = errorColorChosser.color;
+
+                    settings.colorNotes = get(lstColorNote);
+                    settings.nameNotes = get(lstNameNote);
 
                     // save values
+					// AUTOMATIC
 
                     // execute
                     Core.analyse();

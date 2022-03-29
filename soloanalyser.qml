@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import MuseScore 3.0
 import QtQuick.Dialogs 1.2
+import Qt.labs.settings 1.0
 import "zparkingb/selectionhelper.js" as SelHelper
 import "zparkingb/notehelper.js" as NoteHelper
 import "zparkingb/chordanalyser.js" as ChordHelper
@@ -21,7 +22,7 @@ import "soloanalyser/core.js" as Core
 
 MuseScore {
     menuPath: "Plugins." + pluginName
-    description: "Colors the notes part of each measure harmony."
+    description: "Colors and names the notes based on their role if chords/harmonies."
     version: "1.3.0"
 
     readonly property var pluginName: "Solo Analyser"
@@ -40,10 +41,24 @@ MuseScore {
             invalidLibraryDialog.open();
             return;
         }
-		
-		Core.analyse();
-	}
-	
+
+        Core.analyse();
+
+        Qt.quit();
+    }
+
+    Settings {
+        id: settings
+        category: "SoloAnalyser"
+        // in options
+        property var rootColor: Core.defRootColor
+        property var bassColor: Core.defBassColor
+        property var chordColor: Core.defChordColor
+        property var scaleColor: Core.defScaleColor
+        property var errorColor: Core.defErrorColor
+        property var colorNotes: Core.defColorNotes
+        property var nameNotes: Core.defNameNotes
+    }
 
     MessageDialog {
         id: invalidLibraryDialog
@@ -53,7 +68,7 @@ MuseScore {
         text: "Invalid zparkingb/selectionhelper.js, zparkingb/notehelper.js or zparkingb/chordanalyser.js versions.\nExpecting "
          + selHelperVersion + " and " + noteHelperVersion + " and " + chordHelperVersion + ".\n" + pluginName + " will stop here."
         onAccepted: {
-           Qt.quit()
+            Qt.quit()
         }
     }
 

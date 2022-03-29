@@ -9,28 +9,39 @@
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
 
 
-var defColorNotes = "none"; // "none"/"chord"/"all"
+var defColorNotes = "chord"; // "none"/"chord"/"all"
 var defNameNotes = "chord"; // "none"/"chord"/"all"
 
 
-var colorNotes = defColorNotes; // "none"/"chord"/"all"
-var nameNotes = defNameNotes; // "none"/"chord"/"all"
+// var colorNotes = defColorNotes; // "none"/"chord"/"all"
+// var nameNotes = defNameNotes; // "none"/"chord"/"all"
 
-var defRootColor = "#03A60E"; //"darkblue"; //"crimson";
+var defRootColor = "#03A60E"; //"darkblue";
+var defBassColor = "#aa00ff";
 var defErrorColor ="red";
 var defScaleColor = "sandybrown"; //"green"; //slategray dodgerblue
 var defChordColor = "dodgerblue";
 
-var rootColor = defRootColor;
-var errorColor = defErrorColor;
-var scaleColor = defScaleColor
-var chordColor = defChordColor;
+// var rootColor = defRootColor;
+// var bassColor = defBassColor;
+// var errorColor = defErrorColor;
+// var scaleColor = defScaleColor
+// var chordColor = defChordColor;
 
 function analyse() {
 
+	// Config
+var colorNotes = settings.colorNotes; // "none"/"chord"/"all"
+var nameNotes = settings.nameNotes; // "none"/"chord"/"all"
+var rootColor = settings.rootColor;
+var bassColor = settings.bassColor;
+var errorColor = settings.errorColor;
+var scaleColor = settings.scaleColor
+var chordColor = settings.chordColor;
+	
+	
+	// Selection
     var score = curScore;
-    //var cursor = score.newCursor();
-
     var chords = SelHelper.getChordsRestsFromCursor();
 
     if (chords && (chords.length > 0)) {
@@ -48,7 +59,8 @@ function analyse() {
     if (!chords || (chords.length == 0))
         return;
 
-    // Notes and Rests
+    // Analyse
+	curScore.startCmd();
     var prevSeg = null;
     var curChord = null;
     for (var i = 0; i < chords.length; i++) {
@@ -92,9 +104,7 @@ function analyse() {
 
             // color based on role in chord
             if (curChord != null) {
-                var p = (note.pitch - curChord.pitch) % 12;
-                if (p < 0)
-                    p += 12;
+                var p = (note.pitch - curChord.pitch +12) % 12;
                 var color = null;
                 if (p == 0) {
                     color = rootColor;
@@ -104,7 +114,8 @@ function analyse() {
 
                     if (role !== undefined) {
                         console.log("ROLE FOUND : " + role.note + "-" + role.role);
-                        color = chordColor;
+                  
+				  color = (curChord.bass!=null && p==curChord.bass.key)?bassColor:chordColor;
                         degree = role.role;
                     } else if (curChord.outside.indexOf(p) >= 0) {
                         color = errorColor;
@@ -141,7 +152,7 @@ function analyse() {
 
     }
 
-    Qt.quit();
+	curScore.endCmd();
 
 }
 function writeDegree(note, degree) {
