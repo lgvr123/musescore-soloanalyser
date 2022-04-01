@@ -1,6 +1,6 @@
 /**********************
 /* Parking B - MuseScore - Chord analyser
-/* v1.2.8
+/* v1.2.9
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /*  - 1.0.1: The 7th degree was sometime erased
@@ -14,6 +14,7 @@
 /*  - 1.2.7: Ajout de la gestion de la basse
 /*  - 1.2.7: Correction sur les accords majeurs non 7 (ex "C")
 /*  - 1.2.8: Export de la position relative de la basse
+/*  - 1.2.9: Better name for altered 5
 
 /**********************************************/
 // -----------------------------------------------------------------------
@@ -130,7 +131,9 @@ function scaleFromText(text, bass) {
     def3 = null,
     def4 = null,
     def6 = null,
-    def7 = null;
+    def7 = null,
+	n5role="5";
+	
     var keys = [0, 12];
     var chordnotes = [{
             "note": 0,
@@ -192,6 +195,7 @@ function scaleFromText(text, bass) {
         n5 = 6;
         def7 = 9; // changed 12/3/22. Was "n7="
         def6 = 7; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
+		n5role="b5";
     }
 
     // Half-dim
@@ -203,6 +207,7 @@ function scaleFromText(text, bass) {
         n5 = 6;
         def7 = 10; // changed 12/3/22. Was "n7="
         def6 = 8; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
+		n5role="b5";
     }
 
     // Aug
@@ -264,14 +269,16 @@ function scaleFromText(text, bass) {
     if (text.includes("b5")) {
         console.log("Has b5");
         n5 = 6;
+		n5role="b5";
     } else if (text.includes("#5")) {
         console.log("Has #5");
         n5 = 8;
+		n5role="#5";
     }
 
     if (n5 != null) {
         _ptok(keys, n5, "n5");
-        pushToNotes(chordnotes, n5, "5");
+        pushToNotes(chordnotes, n5, n5role);
     } else if (bass == 7) {
         _ptok(keys, bass, "bass as 5");
         pushToNotes(chordnotes, bass, "5");
@@ -422,7 +429,7 @@ function scaleFromText(text, bass) {
         }
     }
 
-    console.log("After analysis : >>" + text + "<<");
+    // console.log("After analysis : >>" + text + "<<");
 
     var scale = new scaleClass(keys, chordnotes, allnotes);
     return scale;
@@ -442,7 +449,7 @@ function pushToNotes(collection, note, role) {
 }
 
 function _ptok(keys, value, comment) {
-    console.log("....pushing >>" + value + "<< (" + comment + ")");
+    // console.log("....pushing >>" + value + "<< (" + comment + ")");
     keys.push(value);
 }
 

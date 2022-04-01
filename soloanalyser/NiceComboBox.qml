@@ -2,11 +2,12 @@ import QtQuick 2.9
 import QtQuick.Controls 2.2
 
 ComboBox {
-    //Layout.fillWidth : true
     id: control
 
+    model: []
+
     delegate: ItemDelegate { // requiert QuickControls 2.2
-		width: control.width
+        width: control.width
         contentItem: Text {
             text: modelData.text
             anchors.verticalCenter: parent.verticalCenter
@@ -23,7 +24,6 @@ ComboBox {
         topPadding: 5
         bottomPadding: 5
         verticalAlignment: Text.AlignVCenter
-
     }
 
     FontMetrics {
@@ -31,20 +31,32 @@ ComboBox {
         font.family: control.contentItem.font.family
 
     }
-    Component.onCompleted: {
-        control.activated(-1);
+
+    Binding on implicitWidth {
+        value: computeWidth(model)
     }
-    onActivated: { // arg: index
+	
+	popup.implicitWidth: computeWidth(model)
+
+
+    function computeWidth(mdl) {
+        if (mdl == null) {
+            return;
+        }
+
+
+
         var longest = "";
-        for (var i = 0; i < control.model.length; i++) {
-            var txt = control.model[i].text;
+        for (var i = 0; i < mdl.length; i++) {
+            var txt = mdl[i].text;
             if (txt.length > longest.length)
                 longest = txt;
         }
         var pwidth = fontMetric.boundingRect(longest).width;
         pwidth += control.contentItem.rightPadding + control.contentItem.leftPadding;
         pwidth += control.indicator.width
-        control.width = pwidth;
+
+        return pwidth;
     }
 
 }
