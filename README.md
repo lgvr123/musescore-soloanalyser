@@ -10,7 +10,7 @@ It comes in 2 flavours:
 Important notes are the one defined in chord palyed . It uses the *Chord Symbols* to identify those notes.
 
 ## New in 1.3.0
-- Differents level of colouring and naming the notes: none, notes defined by the chord, not present in the scale.
+- Differents level of colouring and naming the notes: none, notes defined by the chord, notes present in the scale.
 - New optional note name placement: at _Lyrics_ level.
 - Interactive mode for managing the default behaviour of the non-interactive plugin
 
