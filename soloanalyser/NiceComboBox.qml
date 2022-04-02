@@ -17,7 +17,7 @@ ComboBox {
 
     contentItem: Text {
 
-        text: control.model[control.currentIndex].text
+        text: (control.model[control.currentIndex])?control.model[control.currentIndex].text:"--"
         anchors.verticalCenter: parent.verticalCenter
         leftPadding: 10
         rightPadding: 10

@@ -42,7 +42,8 @@ MuseScore {
             return;
         }
 
-        Core.analyse();
+
+        Core.doAnalyse();
 
         Qt.quit();
     }
@@ -58,6 +59,7 @@ MuseScore {
         property var errorColor: Core.defErrorColor
         property var colorNotes: Core.defColorNotes
         property var nameNotes: Core.defNameNotes
+		property var textType : Core.defTextType
     }
 
     MessageDialog {

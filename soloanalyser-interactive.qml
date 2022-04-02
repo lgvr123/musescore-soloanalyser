@@ -51,18 +51,19 @@ MuseScore {
         }
 
         // 1) Read config file
-		// AUTOMATIC
+        // AUTOMATIC
 
         // 2) push to screen
 
         select(lstColorNote, settings.colorNotes);
         select(lstNameNote, settings.nameNotes);
+        select(lstFormText, settings.textType);
 
         rootColorChosser.color = settings.rootColor;
         bassColorChosser.color = settings.bassColor;
         chordColorChosser.color = settings.chordColor;
         scaleColorChosser.color = settings.scaleColor;
-        errorColorChosser.color = settings.errorColor;
+        // errorColorChosser.color = settings.errorColor;
 
     }
 
@@ -93,6 +94,7 @@ MuseScore {
         property var errorColor: Core.defErrorColor
         property var colorNotes: Core.defColorNotes
         property var nameNotes: Core.defNameNotes
+        property var textType: Core.defTextType
     }
 
     ColumnLayout {
@@ -227,22 +229,39 @@ MuseScore {
                 }
             }
 
-            Label {
-                text: "Invalid:"
+            /*Label {
+            text: "Invalid:"
             }
             Rectangle {
-                id: errorColorChosser
-                width: 50
-                height: 30
-                color: "gray"
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        colorDialog.color = errorColorChosser.color
-                            colorDialog.target = errorColorChosser;
-                        colorDialog.open();
+            id: errorColorChosser
+            width: 50
+            height: 30
+            color: "gray"
+            MouseArea {
+            anchors.fill: parent
+            onClicked: {
+            colorDialog.color = errorColorChosser.color
+            colorDialog.target = errorColorChosser;
+            colorDialog.open();
+            }
+            }
+            }*/
+
+            Label {
+                text: "Text form"
+            }
+
+            NiceComboBox {
+                id: lstFormText
+                model: [{
+                        value: "fingering",
+                        text: "As fingering"
+                    }, {
+                        value: "lyrics",
+                        text: "As lyrics"
                     }
-                }
+                ]
+
             }
         }
 
@@ -261,26 +280,25 @@ MuseScore {
 
                 text: "Reset"
                 onClicked: {
-        settings.rootColor= Core.defRootColor
-        settings.bassColor= Core.defBassColor
-        settings.chordColor= Core.defChordColor
-        settings.scaleColor= Core.defScaleColor
-        settings.errorColor= Core.defErrorColor
-        settings.colorNotes= Core.defColorNotes
-        settings.nameNotes= Core.defNameNotes
-					
-					        select(lstColorNote, settings.colorNotes);
-        select(lstNameNote, settings.nameNotes);
+                    settings.rootColor = Core.defRootColor;
+                    settings.bassColor = Core.defBassColor;
+                    settings.chordColor = Core.defChordColor;
+                    settings.scaleColor = Core.defScaleColor;
+                    settings.errorColor = Core.defErrorColor;
+                    settings.colorNotes = Core.defColorNotes;
+                    settings.nameNotes = Core.defNameNotes;
+                    settings.textType = Core.defTextType;
 
-        rootColorChosser.color = settings.rootColor;
-        bassColorChosser.color = settings.bassColor;
-        chordColorChosser.color = settings.chordColor;
-        scaleColorChosser.color = settings.scaleColor;
-        errorColorChosser.color = settings.errorColor;
+                    select(lstColorNote, settings.colorNotes);
+                    select(lstNameNote, settings.nameNotes);
+                    select(lstFormText, settings.textType);
 
-
+                    rootColorChosser.color = settings.rootColor;
+                    bassColorChosser.color = settings.bassColor;
+                    chordColorChosser.color = settings.chordColor;
+                    scaleColorChosser.color = settings.scaleColor;
+                    // errorColorChosser.color = settings.errorColor;
                 }
-
                 ToolTip.text: "Reset to default values"
                 hoverEnabled: true
             }
@@ -302,6 +320,7 @@ MuseScore {
                 }
                 Button {
                     text: "Clear"
+                    id: btnClear
                     DialogButtonBox.buttonRole: DialogButtonBox.ResetRole
                 }
 
@@ -311,18 +330,27 @@ MuseScore {
                     settings.bassColor = bassColorChosser.color;
                     settings.chordColor = chordColorChosser.color;
                     settings.scaleColor = scaleColorChosser.color;
-                    settings.errorColor = errorColorChosser.color;
+                    // settings.errorColor = errorColorChosser.color;
 
                     settings.colorNotes = get(lstColorNote);
                     settings.nameNotes = get(lstNameNote);
+                    settings.textType = get(lstFormText);
 
                     // save values
-					// AUTOMATIC
+                    // AUTOMATIC
 
                     // execute
-                    Core.analyse();
+                    Core.doAnalyse();
                     Qt.quit();
 
+                }
+
+                onClicked: {
+                    console.log("~~~~~~~~~~~~" + button.text + "~~~~~~~~~~~~");
+                    if (button == btnClear) {
+                        Core.clearAnalyse();
+                        Qt.quit();
+                    }
                 }
                 onRejected: Qt.quit()
 
