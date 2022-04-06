@@ -9,7 +9,7 @@ import "soloanalyser/core.js" as Core
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser plugin
-/* v1.3.0
+/* v1.3.1
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /*  - 1.0.1: Using of ChordAnalyzer shared library
@@ -18,12 +18,13 @@ import "soloanalyser/core.js" as Core
 /*  - 1.2.1: Uses the bass note if specified in the chord
 /*  - 1.2.1: Minor improvments on the chord recognission
 /*  - 1.3.0: Code moved to a library
+/*  - 1.3.1: New altered notes color
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.3.0"
+    version: "1.3.1"
 
     readonly property var pluginName: "Solo Analyser"
 
@@ -57,6 +58,7 @@ MuseScore {
         property var chordColor: Core.defChordColor
         property var scaleColor: Core.defScaleColor
         property var errorColor: Core.defErrorColor
+        property var alteredColor: Core.defAlteredColor
         property var colorNotes: Core.defColorNotes
         property var nameNotes: Core.defNameNotes
 		property var textType : Core.defTextType

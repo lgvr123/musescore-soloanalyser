@@ -15,15 +15,16 @@ import "soloanalyser"
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser plugin
-/* v1.3.0
+/* v1.3.1
 /* ChangeLog:
 /*  - 1.3.0: Initial version based on SoloAnalyser 1.3.0
+/*  - 1.3.1: New altered notes color
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.3.0"
+    version: "1.3.1"
 
     readonly property var pluginName: "Solo Analyser - Interactive"
 
@@ -31,7 +32,7 @@ MuseScore {
     //implicitWidth: controls.implictWidth * 1.5
     //implicitHeight: controls.implicitHeight
     implicitWidth: 500
-    implicitHeight: 400
+    implicitHeight: 500
 
     id: mainWindow
 
@@ -63,6 +64,7 @@ MuseScore {
         bassColorChosser.color = settings.bassColor;
         chordColorChosser.color = settings.chordColor;
         scaleColorChosser.color = settings.scaleColor;
+        alteredColorChosser.color = settings.alteredColor;
         // errorColorChosser.color = settings.errorColor;
 
     }
@@ -92,6 +94,7 @@ MuseScore {
         property var chordColor: Core.defChordColor
         property var scaleColor: Core.defScaleColor
         property var errorColor: Core.defErrorColor
+        property var alteredColor: Core.defAlteredColor
         property var colorNotes: Core.defColorNotes
         property var nameNotes: Core.defNameNotes
         property var textType: Core.defTextType
@@ -212,6 +215,24 @@ MuseScore {
             }
 
             Label {
+                text: "Altered:"
+            }
+            Rectangle {
+                id: alteredColorChosser
+                width: 50
+                height: 30
+                color: "gray"
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        colorDialog.color = alteredColorChosser.color
+                            colorDialog.target = alteredColorChosser;
+                        colorDialog.open();
+                    }
+                }
+            }
+
+            Label {
                 text: "Scale:"
             }
             Rectangle {
@@ -285,6 +306,7 @@ MuseScore {
                     settings.chordColor = Core.defChordColor;
                     settings.scaleColor = Core.defScaleColor;
                     settings.errorColor = Core.defErrorColor;
+                    settings.alteredColor = Core.defAlteredColor;
                     settings.colorNotes = Core.defColorNotes;
                     settings.nameNotes = Core.defNameNotes;
                     settings.textType = Core.defTextType;
@@ -297,6 +319,7 @@ MuseScore {
                     bassColorChosser.color = settings.bassColor;
                     chordColorChosser.color = settings.chordColor;
                     scaleColorChosser.color = settings.scaleColor;
+                    alteredColorChosser.color = settings.alteredColor;
                     // errorColorChosser.color = settings.errorColor;
                 }
                 ToolTip.text: "Reset to default values"
@@ -330,6 +353,7 @@ MuseScore {
                     settings.bassColor = bassColorChosser.color;
                     settings.chordColor = chordColorChosser.color;
                     settings.scaleColor = scaleColorChosser.color;
+                    settings.alteredColor = alteredColorChosser.color;
                     // settings.errorColor = errorColorChosser.color;
 
                     settings.colorNotes = get(lstColorNote);

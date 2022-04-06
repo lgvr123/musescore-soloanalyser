@@ -1,9 +1,10 @@
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser core plugin
-/* v1.0.0
+/* v1.1.0
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
+/* 	- 1.1.0: New alteredColor
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -15,6 +16,7 @@ var defNameNotes = "chord"; // none|chord|all
 
 var defRootColor = "#03A60E"; //"darkblue";
 var defBassColor = "#aa00ff";
+var defAlteredColor = "#da00da";
 var defErrorColor = "red";
 var defScaleColor = "sandybrown"; //"green"; //slategray dodgerblue
 var defChordColor = "dodgerblue";
@@ -30,7 +32,8 @@ function doAnalyse() {
     var bassColor = settings.bassColor;
     var errorColor = settings.errorColor;
     var scaleColor = settings.scaleColor
-        var chordColor = settings.chordColor;
+    var chordColor = settings.chordColor;
+    var alteredColor = (settings.alteredColor) ? settings.alteredColor : defAlteredColor
     var textType = (settings.textType) ? settings.textType : defTextType
 
     // if configured for doing nothing (no colours, no names) we use the default values
@@ -101,8 +104,8 @@ function doAnalyse() {
                     if (role !== undefined) {
                         console.log("ROLE FOUND : " + role.note + "-" + role.role);
 
-                        color = (curChord.bass != null && p == curChord.bass.key) ? bassColor : chordColor;
                         degree = role.role;
+                        color = (curChord.bass != null && p == curChord.bass.key) ? bassColor : ((degree.indexOf("b")==0) || (degree.indexOf("#")==0))?alteredColor:chordColor;
                     } else if (curChord.outside.indexOf(p) >= 0) {
                         color = errorColor;
                     } else if (curChord.keys.indexOf(p) >= 0 && (colorNotes === "all")) {
