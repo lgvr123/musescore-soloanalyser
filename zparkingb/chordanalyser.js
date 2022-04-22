@@ -1,6 +1,6 @@
 /**********************
 /* Parking B - MuseScore - Chord analyser
-/* v1.2.9
+/* v1.3.0
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /*  - 1.0.1: The 7th degree was sometime erased
@@ -15,6 +15,7 @@
 /*  - 1.2.7: Correction sur les accords majeurs non 7 (ex "C")
 /*  - 1.2.8: Export de la position relative de la basse
 /*  - 1.2.9: Better name for altered 5
+/*  - 1.3.0: Better handling of Aug, Sus2, Sus4 
 
 /**********************************************/
 // -----------------------------------------------------------------------
@@ -210,41 +211,46 @@ function scaleFromText(text, bass) {
 		n5role="b5";
     }
 
-    // Aug
-    else if (text.startsWith("aug") || text.startsWith("+")) {
-        console.log("Starts with aug/+");
-        n3 = 3;
-        n5 = 6;
-        def6 = 9; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
-        def7 = 11; // Je force une 7ème par défaut. Qui sera peut-être écrasée après.
-    }
-
-    // sus2
-    else if (text.startsWith("sus2")) {
-        console.log("Starts with sus2");
-        n2 = 2;
-        def3 = 4; //pourrait être 3 ou 4
-        n5 = 7;
-        def6 = 9; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
-    }
-
-    // sus4
-    else if (text.startsWith("sus4")) {
-        console.log("Starts with sus4");
-        n4 = 5;
-        def3 = 4; //pourrait être 3 ou 4
-        n5 = 7;
-        def6 = 9; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
-    }
-
     // No indication => Major, with dominant 7
     else {
         n3 = 4;
         n5 = 7;
         def6 = 9; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
         def7 = 11; // Je force une 7ème par défaut. Qui sera peut-être écrasée après.
-        outside = outside.concat([1, 3, 6, 8]);
+        //outside = outside.concat([1, 3, 6, 8]);
     }
+
+	// Posibles additions
+    // ..Aug..
+    if (text.startsWith("aug") || text.startsWith("+")) {
+        console.log("Starts with aug/+");
+        n3 = 3;
+        n5 = 6;
+        //def6 = 9; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
+        //def7 = 11; // Je force une 7ème par défaut. Qui sera peut-être écrasée après.
+    }
+
+    // ..sus2..
+    else if (text.startsWith("sus2")) {
+        console.log("Starts with sus2");
+        n2 = 2;
+        n3 = null; // pas de tierce explicite
+		def3 = 4; //pourrait être 3 ou 4
+        //n5 = 7;
+        //def6 = 9; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
+    }
+
+    // ..sus4..
+    else if (text.startsWith("sus4")) {
+        console.log("Starts with sus4");
+        n4 = 5;
+		n3 = null; // pas de tierce explicite
+        def3 = 4; //pourrait être 3 ou 4
+        //n5 = 7;
+        //def6 = 9; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
+    }
+
+
 
     // Compléments
     // ..7..
