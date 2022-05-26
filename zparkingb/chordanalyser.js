@@ -1,6 +1,6 @@
 /**********************
 /* Parking B - MuseScore - Chord analyser
-/* v1.3.0
+/* v1.2.13
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /*  - 1.0.1: The 7th degree was sometime erased
@@ -15,8 +15,10 @@
 /*  - 1.2.7: Correction sur les accords majeurs non 7 (ex "C")
 /*  - 1.2.8: Export de la position relative de la basse
 /*  - 1.2.9: Better name for altered 5
-/*  - 1.3.0: Better handling of Aug, Sus2, Sus4 
-
+/*  - 1.2.10(1.3.0): Better handling of Aug, Sus2, Sus4
+/*  - 1.2.11(1.3.1): Better handling of (b5) chords
+/*  - 1.2.12(1.3.2): Better handling of some Maj7 chords
+/* 	- 1.2.13(1.3.3): key was doubled in case of bass
 /**********************************************/
 // -----------------------------------------------------------------------
 // --- Vesionning-----------------------------------------
@@ -24,7 +26,7 @@
 var default_names = ["1", "b9", "2", "#9", "b11", "4", "#11", "(5)", "m6", "M6", "m7", "M7"];
 
 function checkVersion(expected) {
-    var version = "1.2.8";
+    var version = "1.2.13";
 
     var aV = version.split('.').map(function (v) {
         return parseInt(v);
@@ -45,7 +47,8 @@ function checkVersion(expected) {
 
 function chordFromText(source) {
 
-    var text = source.replace(/(\(|\))/g, '');
+    //var text = source.replace(/(\(|\))/g, '');
+    var text = source.replace(/(^\s*\(\s*|\s*\)\s*$)/g, ''); // on vire les "(" et ")" de début et fin
 
     var rootbass = text.split("/");
     text = rootbass[0];
@@ -122,19 +125,22 @@ function getRootAccidental(text) {
 
 function scaleFromText(text, bass) {
 
+    text = text.replace(/(\(|\))/g, ''); // on vire les parenthèses
+
+
     var n2 = null,
     n3 = null,
     n4 = null,
     n5 = null,
-	n6=null,
+    n6 = null,
     n7 = null,
     def2 = null,
     def3 = null,
     def4 = null,
     def6 = null,
     def7 = null,
-	n5role="5";
-	
+    n5role = "5";
+
     var keys = [0, 12];
     var chordnotes = [{
             "note": 0,
@@ -158,7 +164,7 @@ function scaleFromText(text, bass) {
     // Base
     // M, Ma, Maj, ma, maj
     if (text.startsWith("Maj7") || text.startsWith("Ma7") || text.startsWith("M7") || text.startsWith("maj7") || text.startsWith("ma7") ||
-        text.startsWith("t7") || text.startsWith("^7")) {
+        text.startsWith("t7") || text.startsWith("t") || text.startsWith("^7")|| text.startsWith("^")) {
         console.log("Starts with Maj7, t7, ...");
         n3 = 4;
         n5 = 7;
@@ -196,7 +202,7 @@ function scaleFromText(text, bass) {
         n5 = 6;
         def7 = 9; // changed 12/3/22. Was "n7="
         def6 = 7; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
-		n5role="b5";
+        n5role = "b5";
     }
 
     // Half-dim
@@ -208,7 +214,7 @@ function scaleFromText(text, bass) {
         n5 = 6;
         def7 = 10; // changed 12/3/22. Was "n7="
         def6 = 8; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
-		n5role="b5";
+        n5role = "b5";
     }
 
     // No indication => Major, with dominant 7
@@ -220,7 +226,7 @@ function scaleFromText(text, bass) {
         //outside = outside.concat([1, 3, 6, 8]);
     }
 
-	// Posibles additions
+    // Posibles additions
     // ..Aug..
     if (text.startsWith("aug") || text.startsWith("+")) {
         console.log("Starts with aug/+");
@@ -235,7 +241,7 @@ function scaleFromText(text, bass) {
         console.log("Starts with sus2");
         n2 = 2;
         n3 = null; // pas de tierce explicite
-		def3 = 4; //pourrait être 3 ou 4
+        def3 = 4; //pourrait être 3 ou 4
         //n5 = 7;
         //def6 = 9; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
     }
@@ -244,17 +250,15 @@ function scaleFromText(text, bass) {
     else if (text.startsWith("sus4")) {
         console.log("Starts with sus4");
         n4 = 5;
-		n3 = null; // pas de tierce explicite
+        n3 = null; // pas de tierce explicite
         def3 = 4; //pourrait être 3 ou 4
         //n5 = 7;
         //def6 = 9; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
     }
 
-
-
     // Compléments
     // ..7..
-    if (n7 == null && (text.includes("maj7") || text.includes("ma7") || text.startsWith("t7") || text.startsWith("^7"))) {
+    if (n7 == null && (text.includes("maj7") || text.includes("ma7") || text.startsWith("t7") || text.startsWith("t") || text.startsWith("^7") || text.startsWith("^"))) {
         console.log("Has M7");
         n7 = 11;
     } else
@@ -265,31 +269,31 @@ function scaleFromText(text, bass) {
 
     // ..3..
     if (n3 != null) {
-        _ptok(keys, n3, "n3");
+        pushToKeys(keys, n3, "n3");
         pushToNotes(chordnotes, n3, "3");
     } else if (def3 != null) {
-        _ptok(keys, def3, "def3");
+        pushToKeys(keys, def3, "def3");
     }
 
     // ..5..
     if (text.includes("b5")) {
         console.log("Has b5");
         n5 = 6;
-		n5role="b5";
+        n5role = "b5";
     } else if (text.includes("#5")) {
         console.log("Has #5");
         n5 = 8;
-		n5role="#5";
+        n5role = "#5";
     }
 
     if (n5 != null) {
-        _ptok(keys, n5, "n5");
+        pushToKeys(keys, n5, "n5");
         pushToNotes(chordnotes, n5, n5role);
     } else if (bass == 7) {
-        _ptok(keys, bass, "bass as 5");
+        pushToKeys(keys, bass, "bass as 5");
         pushToNotes(chordnotes, bass, "5");
     } else {
-        _ptok(keys, 7, "def5 (=7)");
+        pushToKeys(keys, 7, "def5 (=7)");
     }
 
     // ..2/9..
@@ -297,32 +301,32 @@ function scaleFromText(text, bass) {
     if (text.includes("b9")) {
         console.log("Has b9");
         n9 = 1;
-        _ptok(keys, n9, "b9");
+        pushToKeys(keys, n9, "b9");
         pushToNotes(chordnotes, n9, "b9");
     } else if (text.includes("#9")) {
         console.log("Has #9");
         n9 = 3;
-        _ptok(keys, n9, "#9");
+        pushToKeys(keys, n9, "#9");
         pushToNotes(chordnotes, n9, "#9");
     } else if (text.includes("9")) {
         n9 = 2;
-        _ptok(keys, n9, "9");
+        pushToKeys(keys, n9, "9");
         pushToNotes(chordnotes, n9, "9");
 
-    } else if (((at = [1, 2, 3].indexOf(bass)) >= 0) && (bass!==n2)) {
+    } else if (((at = [1, 2, 3].indexOf(bass)) >= 0) && (bass !== n2)) {
         n9 = bass;
-        _ptok(keys, bass, "bass as 2/9");
+        pushToKeys(keys, bass, "bass as 2/9");
         pushToNotes(chordnotes, bass, ["b", "", "#"][at] + "9(B)");
     }
 
     if (n2 != null) {
-        _ptok(keys, n2, "n2");
+        pushToKeys(keys, n2, "n2");
         pushToNotes(chordnotes, n2, "2");
     } else if (n9 == null) {
         if (def2 == null) { // 15/3: alignement sur Supercollider
             def2 = 2;
         }
-        _ptok(keys, def2, "def2");
+        pushToKeys(keys, def2, "def2");
         if (getNote(chordnotes, def2) === undefined)
             allnotes.push({
                 "note": def2,
@@ -341,32 +345,32 @@ function scaleFromText(text, bass) {
     if (text.includes("b11")) {
         console.log("Has b11");
         n11 = 4;
-        _ptok(keys, n11, "b11");
+        pushToKeys(keys, n11, "b11");
         pushToNotes(chordnotes, n11, "b11");
     } else if (text.includes("#11")) {
         console.log("Has #11");
         n11 = 6;
-        _ptok(keys, n11, "#11");
+        pushToKeys(keys, n11, "#11");
         pushToNotes(chordnotes, n11, "#11");
     } else if (text.includes("11")) {
         console.log("Has 11");
         n11 = 5;
-        _ptok(keys, n11, "11");
+        pushToKeys(keys, n11, "11");
         pushToNotes(chordnotes, n11, "11");
-    } else if (((at = [4, 5, 6].indexOf(bass)) >= 0) && (bass!=n4)){
+    } else if (((at = [4, 5, 6].indexOf(bass)) >= 0) && (bass != n4)) {
         n11 = bass;
-        _ptok(keys, bass, "bass as 4/11");
+        pushToKeys(keys, bass, "bass as 4/11");
         pushToNotes(chordnotes, bass, ["b", "", "#"][at] + "11");
 
     }
 
     if (n4 != null) {
-        _ptok(keys, n4, "n4");
+        pushToKeys(keys, n4, "n4");
         pushToNotes(chordnotes, n4, "4");
     } else if (n11 == null) {
         if (def4 == null)
             def4 = 5;
-        _ptok(keys, def4, "def4");
+        pushToKeys(keys, def4, "def4");
         if (getNote(chordnotes, def4) === undefined)
             pushToNotes(allnotes, def4, "4");
     }
@@ -374,8 +378,8 @@ function scaleFromText(text, bass) {
     // ..6/13..
     if (text.includes("6")) {
         console.log("Has 6");
-		n6=9;
-        _ptok(keys, n6, "(n)6"); // "So in the case of min6 chords always always always make the 6th a major 6th."
+        n6 = 9;
+        pushToKeys(keys, n6, "(n)6"); // "So in the case of min6 chords always always always make the 6th a major 6th."
         pushToNotes(chordnotes, n6, "6");
         def6 = null;
     }
@@ -383,42 +387,42 @@ function scaleFromText(text, bass) {
     if (text.includes("b13")) {
         console.log("Has b13");
         n13 = 8;
-        _ptok(keys, n13, "b13");
+        pushToKeys(keys, n13, "b13");
         pushToNotes(chordnotes, n13, "b13");
     } else if (text.includes("#13")) {
         console.log("Has #13");
         n13 = 10;
-        _ptok(keys, n13, "#13");
+        pushToKeys(keys, n13, "#13");
         pushToNotes(chordnotes, n13, "#13");
     } else if (text.includes("13")) {
         console.log("Has 13");
         n13 = 9;
-        _ptok(keys, n13, "13");
+        pushToKeys(keys, n13, "13");
         pushToNotes(chordnotes, n13, "13");
-    } else if (((at = [8, 9, 10].indexOf(bass)) >= 0) && (bass!=n6)) {
+    } else if (((at = [8, 9, 10].indexOf(bass)) >= 0) && (bass != n6)) {
         n13 = bass;
-        _ptok(keys, bass, "bass as 6/13");
+        pushToKeys(keys, bass, "bass as 6/13");
         pushToNotes(chordnotes, bass, ["b", "", "#"][at] + "13");
-    } else {
+    } else if (n6===null) {
         if (def6 == null)
             def6 = 9;
-        _ptok(keys, def6, "def6");
+        pushToKeys(keys, def6, "def6");
         if (getNote(chordnotes, def6) === undefined)
             pushToNotes(allnotes, def6, "6");
     }
 
     //..7..
     if (n7 != null) {
-        _ptok(keys, n7, "n7");
+        pushToKeys(keys, n7, "n7");
         pushToNotes(chordnotes, n7, "7");
     } else if ((at = [10, 11].indexOf(bass)) >= 0) {
         n7 = bass;
-        _ptok(keys, bass, "bass as 7");
+        pushToKeys(keys, bass, "bass as 7");
         pushToNotes(chordnotes, bass, ["m", "M"][at] + "7");
     } else {
         if (def7 == null)
             def7 = 11;
-        _ptok(keys, def7, "def7");
+        pushToKeys(keys, def7, "def7");
         if (getNote(chordnotes, def7) === undefined)
             pushToNotes(allnotes, def7, "7");
     }
@@ -427,8 +431,8 @@ function scaleFromText(text, bass) {
     allnotes = chordnotes.concat(allnotes);
     for (var n = 1; n < 12; n++) {
         if ((getNote(allnotes, n) === undefined) && (n !== bass)) {
-			var at;
-		    var dn = (n3 == null && (at=[3,4].indexOf(n))>=0) ? ["m3","M3"][at] : default_names[n];
+            var at;
+            var dn = (n3 == null && (at = [3, 4].indexOf(n)) >= 0) ? ["m3", "M3"][at] : default_names[n];
             pushToNotes(allnotes, n, dn);
         } else if (n === bass) {
             pushToNotes(allnotes, n, "bass");
@@ -454,8 +458,14 @@ function pushToNotes(collection, note, role) {
     });
 }
 
-function _ptok(keys, value, comment) {
+function pushToKeys(keys, value, comment) {
     // console.log("....pushing >>" + value + "<< (" + comment + ")");
+	
+	if(keys.indexOf(value)>=0) {
+        console.log("Not adding " +  value + "to keys because it is already present");
+        return;
+	}
+	
     keys.push(value);
 }
 
@@ -495,17 +505,17 @@ function chordClass(tpc, name, scale, basstpc) {
     this.root = tpc.raw;
     this.accidental = tpc.accidental;
     this.scale = scale;
-	if (basstpc == null) {
-	    this.bass = null;
-	} else {
-	    this.bass = {
-	        "key": ((basstpc.pitch - tpc.pitch + 12) % 12),
-	        "pitch": basstpc.pitch,
-	        "accidental": basstpc.accidental,
-	        "root": basstpc.raw
-	    }
-	}
-	Object.defineProperty(this, "keys", {
+    if (basstpc == null) {
+        this.bass = null;
+    } else {
+        this.bass = {
+            "key": ((basstpc.pitch - tpc.pitch + 12) % 12),
+            "pitch": basstpc.pitch,
+            "accidental": basstpc.accidental,
+            "root": basstpc.raw
+        }
+    }
+    Object.defineProperty(this, "keys", {
         get: function () {
             return this.scale.keys;
         }

@@ -3,16 +3,19 @@
 
 ![SoloAnalyser in action](/demo/soloanalyzer-demo.png)
 
-It comes in 2 flavours:
+
+### SoloAnalyser ### 
+The *SoloAnalyser* comes in 2 flavours:
 - **A plugin without interaction**: it colours and names the selected note automatically without manual intervention,
-- **An interactive plugin**: you can select the options for the solo analysing and rendering. It acts also as a default behaviour management for the non-interactive plugin
+- **An interactive plugin**: you can select the options for the solo analysing and rendering. It acts also as a default behaviour management for the non-interactive plugin.
 
 Important notes are the one defined in chord played. It uses the *Chord Symbols* to identify those notes.
 
-## New in 1.3.0
-- Different level of colouring and naming the notes: none, notes defined by the chord, notes present in the scale.
-- New optional note name placement: at _Lyrics_ level.
-- Interactive mode for managing the default behaviour of the non-interactive plugin
+### ChordAnalyser ### 
+*ChordAnalyser* is an extra plugin provided to explain and describe the notes of a *Chord Symbol*. It also gives a (default) scale matching this chord.
+The plugin works in 2 ways:
+- either **automatically**, based on a selected chord symbol,
+- or **manually**, where the user can enter manually a valid chord symbol to analyse.
 
 ## Download ##
 Download the [last stable version](https://github.com/lgvr123/musescore-soloanalyser/releases)

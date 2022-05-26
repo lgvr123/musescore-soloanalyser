@@ -30,7 +30,7 @@ MuseScore {
 
     readonly property var selHelperVersion: "1.2.0"
     readonly property var noteHelperVersion: "1.0.3"
-    readonly property var chordHelperVersion: "1.2.7"
+    readonly property var chordHelperVersion: "1.2.13"
 
     onRun: {
 
