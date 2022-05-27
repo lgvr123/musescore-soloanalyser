@@ -26,6 +26,8 @@ MuseScore {
 
         var harmonies = getHarmoniesFromSelection();
 
+		cleanTexts();
+		
         for (var i = 0; i < harmonies.length; i++) {
             logHarmony(harmonies[i]);
         }
@@ -43,6 +45,7 @@ MuseScore {
         var el = selection.elements;
         var harmonies = [];
         console.log("Analyzing " + el.length + " elements in search of harmonies");
+		
         for (var i = 0; i < el.length; i++) {
             var element = el[i];
             console.log("\t" + i + ") " + element.type + " (" + element.userName() + ")");
@@ -54,16 +57,20 @@ MuseScore {
         return harmonies;
     }
 
+	function cleanTexts() {
+		txtLog.text = "";
+        txtSimple.text = "";
+	}
+		
+
     function logHarmony(chord_symbol) {
         if (typeof chord_symbol !== 'string') {
             console.log("Invalid chord type. Received " + (typeof chord_symbol));
             return;
         }
 
-        txtLog.text = "";
         addlog("===== " + chord_symbol + " =====");
 
-        txtSimple.text = "";
         addSimple("===== " + chord_symbol + " =====");
 
         var chord = ChordHelper.chordFromText(chord_symbol);
@@ -75,14 +82,9 @@ MuseScore {
                 "sharp_mode": (['NONE', 'FLAT', 'FLAT2'].indexOf(chord.accidental) < 0)
             };
 
-            txtLog.text = "";
-            addlog("===== " + chord_symbol + " =====");
-
             logObject("Chord", chord, context);
 
             // Simple
-            txtSimple.text = "";
-            addSimple("===== " + chord_symbol + " =====");
             addSimple("----- chord -----");
             if (chord.bass !== null) {
                 addSimple("Bass", chord.bass.root);
@@ -123,7 +125,7 @@ MuseScore {
         if (typeof text !== 'undefined') {
             towrite += ": " + text;
         }
-        console.log(towrite);
+        //console.log(towrite);
         txtLog.text = ((txtLog.text !== "") ? (txtLog.text + "\n") : "") + towrite;
     }
 
@@ -268,6 +270,7 @@ MuseScore {
                     text: "Analyse"
                     enabled: txtChordSymbol.text !== ""
                     onClicked: {
+						cleanTexts();
                         console.log("launching analyse with '" + txtChordSymbol.text + "'");
                         logHarmony(txtChordSymbol.text)
                     }
