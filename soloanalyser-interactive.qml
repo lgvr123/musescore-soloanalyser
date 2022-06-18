@@ -15,16 +15,17 @@ import "soloanalyser"
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser plugin
-/* v1.3.1
+/* v1.4.0
 /* ChangeLog:
 /*  - 1.3.0: Initial version based on SoloAnalyser 1.3.0
 /*  - 1.3.1: New altered notes color
+/*  - 1.4.0: Multi track and voices
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.3.1"
+    version: "1.4.0"
 
     readonly property var pluginName: "Solo Analyser - Interactive"
 
@@ -36,7 +37,7 @@ MuseScore {
 
     id: mainWindow
 
-    readonly property var selHelperVersion: "1.2.0"
+    readonly property var selHelperVersion: "1.3.0"
     readonly property var noteHelperVersion: "1.0.3"
     readonly property var chordHelperVersion: "1.2.13"
 
