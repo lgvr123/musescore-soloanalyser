@@ -20,6 +20,7 @@ import "soloanalyser/core.js" as Core
 /*  - 1.3.0: Code moved to a library
 /*  - 1.3.1: New altered notes color
 /*  - 1.4.0: Multi track and voices
+/*  - 1.4.0: Settings for the multi track and voices
 /**********************************************/
 
 MuseScore {
@@ -63,6 +64,8 @@ MuseScore {
         property var colorNotes: Core.defColorNotes
         property var nameNotes: Core.defNameNotes
 		property var textType : Core.defTextType
+		property var useBelowSymbols : defUseBelowSymbols
+		property var useAboveSymbols : defUseAboveSymbols
     }
 
     MessageDialog {

@@ -20,6 +20,7 @@ import "soloanalyser"
 /*  - 1.3.0: Initial version based on SoloAnalyser 1.3.0
 /*  - 1.3.1: New altered notes color
 /*  - 1.4.0: Multi track and voices
+/*  - 1.4.0: Settings for the multi track and voices
 /**********************************************/
 
 MuseScore {
@@ -33,7 +34,7 @@ MuseScore {
     //implicitWidth: controls.implictWidth * 1.5
     //implicitHeight: controls.implicitHeight
     implicitWidth: 500
-    implicitHeight: 500
+    implicitHeight: 550
 
     id: mainWindow
 
@@ -67,6 +68,9 @@ MuseScore {
         scaleColorChosser.color = settings.scaleColor;
         alteredColorChosser.color = settings.alteredColor;
         // errorColorChosser.color = settings.errorColor;
+		
+		chkUseAboveSymbols.checked=settings.useAboveSymbols;
+		chkUseBelowSymbols.checked=settings.useBelowSymbols;
 
     }
 
@@ -99,6 +103,8 @@ MuseScore {
         property var colorNotes: Core.defColorNotes
         property var nameNotes: Core.defNameNotes
         property var textType: Core.defTextType
+		property var useBelowSymbols : Core.defUseBelowSymbols
+		property var useAboveSymbols : Core.defUseAboveSymbols
     }
 
     ColumnLayout {
@@ -285,7 +291,36 @@ MuseScore {
                 ]
 
             }
-        }
+
+            Flow {
+                Layout.columnSpan: 2
+                SmallCheckBox {
+                    id: chkUseAboveSymbols
+                    text: "Allow using preceeding staves chord symbols"
+					hoverEnabled: true
+					ToolTip.visible: hovered
+                    ToolTip.text: "<p>If a staff has no chord symbols, use the chord symbols of the first <br/>preceeding staff having chord symbols.<br/><p><b><u>Remark</u></b>: When these options are used, SoloAnalyzer must be used <br/>preferably in <b>Concert pitch</b></p></html>"
+                }
+                Text {
+                    text: "TT"
+                }
+            }
+
+            Flow {
+                Layout.columnSpan: 2
+                SmallCheckBox {
+                    id: chkUseBelowSymbols
+                    text: "Allow using following staves chord symbols"
+					hoverEnabled: true
+					ToolTip.visible: hovered
+                    ToolTip.text: "<p>If a staff has no chord symbols, use the chord symbols of the first <br/>following staff having chord symbols.<br/><p><b><u>Remark</u></b>: When these options are used, SoloAnalyzer must be used <br/>preferably in <b>Concert pitch</b></p></html>"
+                }
+                Text {
+                    text: "TT"
+                }
+            }
+
+		}
 
         Item { // spacer // DEBUG Item/Rectangle
             implicitWidth: 10
@@ -311,6 +346,8 @@ MuseScore {
                     settings.colorNotes = Core.defColorNotes;
                     settings.nameNotes = Core.defNameNotes;
                     settings.textType = Core.defTextType;
+                    settings.useAboveSymbols = Core.defUseAboveSymbols;
+                    settings.useBelowSymbols = Core.defUseBelowSymbols;
 
                     select(lstColorNote, settings.colorNotes);
                     select(lstNameNote, settings.nameNotes);
@@ -322,9 +359,14 @@ MuseScore {
                     scaleColorChosser.color = settings.scaleColor;
                     alteredColorChosser.color = settings.alteredColor;
                     // errorColorChosser.color = settings.errorColor;
+					
+					chkUseBelowSymbols.checked=settings.useBelowSymbols;
+					chkUseAboveSymbols.checked=settings.useAboveSymbols;
                 }
-                ToolTip.text: "Reset to default values"
                 hoverEnabled: true
+				ToolTip.visible: hovered
+                ToolTip.text: "Reset to default values"
+				
             }
 
             Item { // spacer // DEBUG Item/Rectangle
@@ -360,6 +402,9 @@ MuseScore {
                     settings.colorNotes = get(lstColorNote);
                     settings.nameNotes = get(lstNameNote);
                     settings.textType = get(lstFormText);
+
+					settings.useBelowSymbols=chkUseBelowSymbols.checked;
+					settings.useAboveSymbols=chkUseAboveSymbols.checked;
 
                     // save values
                     // AUTOMATIC

@@ -6,6 +6,8 @@
 /* 	- 1.0.0: Initial release
 /* 	- 1.1.0: New alteredColor
 /* 	- 1.2.0: Multi track
+/* 	- 1.2.0: Don't modify the note color on "Color none"
+/* 	- 1.2.0: Transposing instruments
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -22,6 +24,11 @@ var defErrorColor = "red";
 var defScaleColor = "sandybrown"; //"green"; //slategray dodgerblue
 var defChordColor = "dodgerblue";
 
+var defUseAboveSymbols = true;
+var defUseBelowSymbols = true;
+
+
+
 var defTextType = "fingering"; // fingering|lyrics
 
 function doAnalyse() {
@@ -32,10 +39,12 @@ function doAnalyse() {
     var rootColor = settings.rootColor;
     var bassColor = settings.bassColor;
     var errorColor = settings.errorColor;
-    var scaleColor = settings.scaleColor
-        var chordColor = settings.chordColor;
+    var scaleColor = settings.scaleColor;
+    var chordColor = settings.chordColor;
     var alteredColor = (settings.alteredColor) ? settings.alteredColor : defAlteredColor
     var textType = (settings.textType) ? settings.textType : defTextType
+    var useAboveSymbols = (settings.useAboveSymbols!==undefined) ? settings.useAboveSymbols : true
+    var useBelowSymbols = (settings.useBelowSymbols!==undefined) ? settings.useBelowSymbols : true
 
     // if configured for doing nothing (no colours, no names) we use the default values
     if (colorNotes == "none" && nameNotes == "none") {
@@ -96,18 +105,21 @@ function doAnalyse() {
     }
 
     // consolidation de haut en bas
-    for (var track = 1; track <= trackMax; track++) { // !! démarre à 1
-        if (((byTrack[track] !== undefined) ? byTrack[track].length : 0) === 0)
-            byTrack[track] = byTrack[track - 1];
-    }
+	if (useAboveSymbols) {
+	    for (var track = 1; track <= trackMax; track++) { // !! démarre à 1
+	        if (((byTrack[track] !== undefined) ? byTrack[track].length : 0) === 0)
+	            byTrack[track] = byTrack[track - 1];
+	    }
+	}
 
-    // consolidation de bas en haut
-    for (var track = trackMax - 1; track >= 0; track--) { // !! démarre à 1
-        if (((byTrack[track] !== undefined) ? byTrack[track].length : 0) === 0)
-            byTrack[track] = byTrack[track + 1];
-    }
-
-    // check
+	// consolidation de bas en haut
+	if (useBelowSymbols) {
+	    for (var track = trackMax - 1; track >= 0; track--) { // !! démarre à 1
+	        if (((byTrack[track] !== undefined) ? byTrack[track].length : 0) === 0)
+	            byTrack[track] = byTrack[track + 1];
+	    }
+	}
+	// check
     for (var track = 0; track <= trackMax; track++) {
         console.log(track + ": " + ((byTrack[track] !== undefined) ? byTrack[track].length : 0));
     }
@@ -145,7 +157,11 @@ function doAnalyse() {
 
                     // color based on role in chord
                     if (curChord != null) {
-                        var p = (note.pitch - curChord.pitch + 12) % 12;
+						// !! The chord name is depending if we are in Instrument Pitch or Concert Pitch (this is automatic in MuseScore)
+						// So we have to retrieve the pitch as shown on the score. In instrument pitch this might be different than the pitch
+						// given by note.pitch which is corresponding to the *concert pitch*. 
+						var tpitch = note.pitch - (note.tpc - note.tpc1); // note displayed as if it has that pitch
+                        var p = (tpitch - curChord.pitch + 12) % 12;
                         var color = null;
                         if (p == 0) {
                             color = rootColor;
@@ -175,7 +191,7 @@ function doAnalyse() {
                                     degree = role.role;
                                 }
                             }
-                            console.log(note.pitch + "|" + curChord.pitch + " ==> " + p + " ==> " + color);
+                            console.log(tpitch + ((tpitch!==note.pitch)?(" (transposing instrument !! original pitch: "+note.pitch+")"):"")+ " | " + curChord.pitch + " ==> " + p + " ==> " + color);
                         }
                     } else
                         // no current chord, so resetting the color
@@ -186,7 +202,10 @@ function doAnalyse() {
                     console.log("colorNotes : " + colorNotes + ", color: " + color);
                     console.log("nameNotes : " + nameNotes + ", text: " + degree);
 
-                    note.color = ((colorNotes !== "none") && (color != null)) ? color : "black";
+
+                    if (colorNotes !== "none") {
+						note.color = (color != null) ? color : "black";
+					}
                     if (textType == "fingering") {
                         writeDegree(note, (nameNotes !== "none") ? degree : null);
                     } else {

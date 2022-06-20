@@ -3,6 +3,12 @@
 
 ![SoloAnalyser in action](/demo/soloanalyzer-demo.png)
 
+## What's new in 1.4.0 ?
+* [New] Multi-staves and voices analyse : 
+Multiple tracks can be analyzed at once. If some staff do not have chord symbols, the analyse will optionnaly use the chord symbols from the preceeding or following staves.
+* [Correction] Transposing instruments were not correclty handled
+
+## Plugins
 
 ### SoloAnalyser ### 
 The *SoloAnalyser* comes in 2 flavours:
@@ -16,6 +22,11 @@ Important notes are the one defined in chord played. It uses the *Chord Symbols*
 The plugin works in 2 ways:
 - either **automatically**, based on a selected chord symbol,
 - or **manually**, where the user can enter manually a valid chord symbol to analyse.
+
+### Important remark about transposing instruments ###
+*Solo Analyser* works well with transposing instruments may MuseScore be in *Concert pitch* or in *Written pitch*.
+
+Nevertheless, when analysing a complete score with transposing and non-transposing instruments, it is recommended to switch MuseScore to *Concert pitch* to allow a correct analyse.
 
 ## Download ##
 Download the [last stable version](https://github.com/lgvr123/musescore-soloanalyser/releases)
