@@ -9,7 +9,7 @@ import "soloanalyser/core.js" as Core
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser plugin
-/* v1.4.0
+/* v1.4.1
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /*  - 1.0.1: Using of ChordAnalyzer shared library
@@ -21,12 +21,13 @@ import "soloanalyser/core.js" as Core
 /*  - 1.3.1: New altered notes color
 /*  - 1.4.0: Multi track and voices
 /*  - 1.4.0: Settings for the multi track and voices
+/*  - 1.4.1: Bug with some transposing instruments + bug when initiating useBelow/AboveSymbols 
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.4.0"
+    version: "1.4.1"
 
     readonly property var pluginName: "Solo Analyser"
 
@@ -64,8 +65,8 @@ MuseScore {
         property var colorNotes: Core.defColorNotes
         property var nameNotes: Core.defNameNotes
 		property var textType : Core.defTextType
-		property var useBelowSymbols : defUseBelowSymbols
-		property var useAboveSymbols : defUseAboveSymbols
+		property var useBelowSymbols : Core.defUseBelowSymbols
+		property var useAboveSymbols : Core.defUseAboveSymbols
     }
 
     MessageDialog {

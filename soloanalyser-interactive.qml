@@ -15,12 +15,13 @@ import "soloanalyser"
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser plugin
-/* v1.4.0
+/* v1.4.1
 /* ChangeLog:
 /*  - 1.3.0: Initial version based on SoloAnalyser 1.3.0
 /*  - 1.3.1: New altered notes color
 /*  - 1.4.0: Multi track and voices
 /*  - 1.4.0: Settings for the multi track and voices
+/*  - 1.4.1: Bug with some transposing instruments
 /**********************************************/
 
 MuseScore {

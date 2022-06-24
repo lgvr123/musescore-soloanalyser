@@ -1,13 +1,14 @@
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser core plugin
-/* v1.2.0
+/* v1.2.1
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /* 	- 1.1.0: New alteredColor
 /* 	- 1.2.0: Multi track
 /* 	- 1.2.0: Don't modify the note color on "Color none"
 /* 	- 1.2.0: Transposing instruments
+/* 	- 1.2.1: Bug with some transposing instruments
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -160,7 +161,11 @@ function doAnalyse() {
 						// !! The chord name is depending if we are in Instrument Pitch or Concert Pitch (this is automatic in MuseScore)
 						// So we have to retrieve the pitch as shown on the score. In instrument pitch this might be different than the pitch
 						// given by note.pitch which is corresponding to the *concert pitch*. 
-						var tpitch = note.pitch - (note.tpc - note.tpc1); // note displayed as if it has that pitch
+						
+						// var tpitch = note.pitch - (note.tpc - note.tpc1); // note displayed as if it has that pitch
+						var tpitch = note.pitch + NoteHelper.deltaTpcToPitch(note.tpc,note.tpc1); // note displayed as if it has that pitch
+						
+						
                         var p = (tpitch - curChord.pitch + 12) % 12;
                         var color = null;
                         if (p == 0) {
@@ -191,7 +196,7 @@ function doAnalyse() {
                                     degree = role.role;
                                 }
                             }
-                            console.log(tpitch + ((tpitch!==note.pitch)?(" (transposing instrument !! original pitch: "+note.pitch+")"):"")+ " | " + curChord.pitch + " ==> " + p + " ==> " + color);
+                            console.log("note pitch: "+tpitch + ((tpitch!==note.pitch)?(" (transposing!! original: "+note.pitch+")"):"")+ " | Chord pitch:" + curChord.pitch + " ==> position: " + p + " ==> color: " + color);
                         }
                     } else
                         // no current chord, so resetting the color
