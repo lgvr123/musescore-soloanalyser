@@ -1,7 +1,7 @@
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser core plugin
-/* v1.2.1
+/* v1.2.2
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /* 	- 1.1.0: New alteredColor
@@ -9,6 +9,9 @@
 /* 	- 1.2.0: Don't modify the note color on "Color none"
 /* 	- 1.2.0: Transposing instruments
 /* 	- 1.2.1: Bug with some transposing instruments
+/*  - 1.2.2: Don't analyse the right selection if the selection is further than a certain point in the score 
+/*  - 1.2.2: Bug when first note is far beyond the first chord symbol
+/*  - 1.2.2: LookAhead option
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -27,6 +30,7 @@ var defChordColor = "dodgerblue";
 
 var defUseAboveSymbols = true;
 var defUseBelowSymbols = true;
+var defLookAhead = true;
 
 
 
@@ -46,6 +50,7 @@ function doAnalyse() {
     var textType = (settings.textType) ? settings.textType : defTextType
     var useAboveSymbols = (settings.useAboveSymbols!==undefined) ? settings.useAboveSymbols : true
     var useBelowSymbols = (settings.useBelowSymbols!==undefined) ? settings.useBelowSymbols : true
+    var lookAhead = (settings.lookAhead!==undefined) ? settings.lookAhead : true
 
     // if configured for doing nothing (no colours, no names) we use the default values
     if (colorNotes == "none" && nameNotes == "none") {
@@ -59,7 +64,7 @@ function doAnalyse() {
         return;
 
     // Analyse
-    var segMin = 999;
+    var segMin = 999999999;
     var segMax = 0;
     var trackMin = 999;
     var trackMax = 0;
@@ -75,12 +80,14 @@ function doAnalyse() {
     var byTrack = new Array(trackMax + 1); ;
 
     var cursor = curScore.newCursor();
-    cursor.rewindToTick(segMin);
+    // cursor.rewindToTick(segMin);
+    cursor.rewindToTick(0); // retrieving the chord from the beginning, so that if do the analyse in the middlle of a chord, we know that chord.
     var segment = cursor.segment;
-    while (segment) {
+	var count=0;
+    while (segment && ((segment.tick<=segMax) || (lookAhead && count===0))) {
 
         var annotations = segment.annotations;
-        //console.log(annotations.length + " annotations");
+        console.log(segment.tick+": "+annotations.length + " annotations");
         if (annotations && (annotations.length > 0)) {
             for (var j = 0; j < annotations.length; j++) {
                 var ann = annotations[j];
@@ -90,17 +97,21 @@ function doAnalyse() {
 
                 if (/*(ann.track < trackMin) ||*/(ann.track > trackMax)) // j'analyse aussi ce qui a en amont
                     continue;
+					
+				count++;
 
                 if (byTrack[ann.track] === undefined)
                     byTrack[ann.track] = [];
 
+				console.log(segment.tick+": adding "+ann.text+" to track "+ann.track);
                 byTrack[ann.track].push({
                     tick: segment.tick,
-                    text: ann.text
+                    chord: ChordHelper.chordFromText(ann.text)
                 });
 
             }
         }
+
 
         segment = segment.next;
     }
@@ -123,6 +134,11 @@ function doAnalyse() {
 	// check
     for (var track = 0; track <= trackMax; track++) {
         console.log(track + ": " + ((byTrack[track] !== undefined) ? byTrack[track].length : 0));
+        if (byTrack[track] !== undefined) {
+            for (var x = 0; x < byTrack[track].length; x++) {
+                console.log("   " + byTrack[track][x].tick + ": " + byTrack[track][x].chord.name);
+            }
+        }
     }
 
     // Processing
@@ -130,19 +146,29 @@ function doAnalyse() {
 
     // processing
     for (var track = trackMin; track <= trackMax; track++) {
+		console.log("~~~~ processing track "+track+" ~~~~");
         cursor.track = track;
         cursor.rewindToTick(segMin);
         var segment = cursor.segment;
         var values = (byTrack[track] !== undefined) ? byTrack[track] : [];
         var curChord = null;
-        var step = -1;
+		var check=null;
+        var step = lookAhead?0:-1; // if we lookAhead, we start from the first chord, even if it is further that start segment.
+		console.log("lookAhead = "+lookAhead+", donc on commence à l'étape "+step);
         while (segment && segment.tick<=segMax) {
             // getting the right chord diagram
-            if ((step < (values.length - 1)) && (values[step + 1].tick <= segment.tick)) {
+			
+            while ((step < (values.length - 1)) && (values[step + 1].tick <= segment.tick)) {
                 step++;
-                curChord = ChordHelper.chordFromText(values[step].text);
-            }
-            console.log(track + "/" + segment.tick + ": " + ((curChord === null) ? "/" : curChord.name));
+				console.log("next: going to step "+step+", because current tick ("+segment.tick+") is >= next step's tick ("+values[step].tick+")"); 
+                // curChord = ChordHelper.chordFromText(values[step].text);
+			}
+			
+			if(step>=0) {
+                curChord = values[step].chord;
+                check = values[step].tick;
+			}
+            console.log(track + "/" + segment.tick + ": step = "+step + " => chord = "+((curChord === null) ? "/" : curChord.name+" ( from "+check+")"));
 
             // retrieving the element on this track
             var el = cursor.element;

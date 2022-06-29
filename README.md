@@ -3,10 +3,11 @@
 
 ![SoloAnalyser in action](/demo/soloanalyzer-demo.png)
 
-## What's new in 1.4.0 ?
-* [New] Multi-staves and voices analyse : 
-Multiple tracks can be analyzed at once. If some staff do not have chord symbols, the analyse will optionnaly use the chord symbols from the preceeding or following staves.
-* [Correction] Transposing instruments were not correclty handled
+## What's new in 1.4.2 ?
+* [New] Look ahead option, useful for anacrusis
+* [Correction] Invalid analysis for some transposing instruments
+* [Correction] Issue when the selection was too far in the score 
+* [Correction] Issue when the first note to analyse is far beyond the first chord symbol
 
 ## Plugins
 

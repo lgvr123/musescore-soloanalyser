@@ -15,27 +15,30 @@ import "soloanalyser"
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser plugin
-/* v1.4.1
+/* v1.4.2
 /* ChangeLog:
 /*  - 1.3.0: Initial version based on SoloAnalyser 1.3.0
 /*  - 1.3.1: New altered notes color
 /*  - 1.4.0: Multi track and voices
 /*  - 1.4.0: Settings for the multi track and voices
 /*  - 1.4.1: Bug with some transposing instruments
+/*  - 1.4.2: Don't analyse the right selection if the selection is further than a certain point in the score
+/*  - 1.4.2: Bug when first note is far beyond the first chord symbol
+/*  - 1.4.2: LookAhead option + new UI layout
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.4.0"
+    version: "1.4.2"
 
     readonly property var pluginName: "Solo Analyser - Interactive"
 
     pluginType: "dialog"
     //implicitWidth: controls.implictWidth * 1.5
     //implicitHeight: controls.implicitHeight
-    implicitWidth: 500
-    implicitHeight: 550
+    implicitWidth: 900
+    implicitHeight: 500
 
     id: mainWindow
 
@@ -69,9 +72,10 @@ MuseScore {
         scaleColorChosser.color = settings.scaleColor;
         alteredColorChosser.color = settings.alteredColor;
         // errorColorChosser.color = settings.errorColor;
-		
-		chkUseAboveSymbols.checked=settings.useAboveSymbols;
-		chkUseBelowSymbols.checked=settings.useBelowSymbols;
+
+        chkUseAboveSymbols.checked = settings.useAboveSymbols;
+        chkUseBelowSymbols.checked = settings.useBelowSymbols;
+        chkLookAhead.checked = settings.lookAhead;
 
     }
 
@@ -104,235 +108,267 @@ MuseScore {
         property var colorNotes: Core.defColorNotes
         property var nameNotes: Core.defNameNotes
         property var textType: Core.defTextType
-		property var useBelowSymbols : Core.defUseBelowSymbols
-		property var useAboveSymbols : Core.defUseAboveSymbols
+        property var useBelowSymbols: Core.defUseBelowSymbols
+        property var useAboveSymbols: Core.defUseAboveSymbols
+        property var lookAhead: Core.defLookAhead
     }
 
-    ColumnLayout {
+    GridLayout {
         anchors.fill: parent
-        GridLayout {
-            id: controls
+        anchors.topMargin: 20
+        anchors.leftMargin: 20
+        anchors.rightMargin: 20
+        anchors.bottomMargin: 10
+        
+		columns: 2
+                columnSpacing: 5
 
-            Layout.margins: 10
-            columnSpacing: 10
-            rowSpacing: 10
-            columns: 2
 
-            Layout.fillHeight: true
+        GroupBox {
+            title: "Rendering options..."
+                //Layout.margins: 5
+				Layout.alignment: Qt.AlignTop | Qt.AlignLeft
+				GridLayout {
+                columnSpacing: 5
 
-            Label {
-                text: "Note coloring"
-                //Tooltip.text : "Color all notes or only the ones defined by the chord";
-                Layout.alignment: Qt.AlignLeft
-                Layout.fillHeight: false
-            }
+                rowSpacing: 10
+                columns: 2
 
-            NiceComboBox {
-                //Layout.fillWidth : true
-                id: lstColorNote
-                model: [{
-                        'value': "none",
-                        'text': "None - Don't color notes"
-                    }, {
-                        'value': "chord",
-                        'text': "Chord - Color the notes present in the chord"
-                    }, {
-                        'value': "all",
-                        'text': "Scale - Color the notes defined by the scale"
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+
+                Label {
+                    text: "Note coloring"
+                    //Tooltip.text : "Color all notes or only the ones defined by the chord";
+                    Layout.alignment: Qt.AlignLeft
+                    Layout.fillHeight: false
+                }
+
+                NiceComboBox {
+                    //Layout.fillWidth : true
+                    id: lstColorNote
+                    model: [{
+                            'value': "none",
+                            'text': "None - Don't color notes"
+                        }, {
+                            'value': "chord",
+                            'text': "Chord - Color the notes present in the chord"
+                        }, {
+                            'value': "all",
+                            'text': "Scale - Color the notes defined by the scale"
+                        }
+                    ]
+
+                }
+
+                Label {
+                    text: "Note name"
+                    //Tooltip.text : "Name all notes or only the ones defined by the chord";
+                    Layout.alignment: Qt.AlignLeft
+                    Layout.fillHeight: false
+                }
+
+                NiceComboBox {
+                    //Layout.fillWidth : true
+                    id: lstNameNote
+                    model: [{
+                            'value': "none",
+                            'text': "None - Don't name notes"
+                        }, {
+                            'value': "chord",
+                            'text': "Chord - Name the notes present by the chord"
+                        }, {
+                            'value': "all",
+                            'text': "Scale - Name the notes defined by the scale"
+                        }
+                    ]
+
+                }
+
+                Label {
+                    text: "Root:"
+                }
+                Rectangle {
+                    id: rootColorChosser
+                    width: 50
+                    height: 30
+                    color: "gray"
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            colorDialog.color = rootColorChosser.color
+                                colorDialog.target = rootColorChosser;
+                            colorDialog.open();
+                        }
                     }
-                ]
+                }
 
-            }
-
-            Label {
-                text: "Note name"
-                //Tooltip.text : "Name all notes or only the ones defined by the chord";
-                Layout.alignment: Qt.AlignLeft
-                Layout.fillHeight: false
-            }
-
-            NiceComboBox {
-                //Layout.fillWidth : true
-                id: lstNameNote
-                model: [{
-                        'value': "none",
-                        'text': "None - Don't name notes"
-                    }, {
-                        'value': "chord",
-                        'text': "Chord - Name the notes present by the chord"
-                    }, {
-                        'value': "all",
-                        'text': "Scale - Name the notes defined by the scale"
+                Label {
+                    text: "Bass:"
+                }
+                Rectangle {
+                    id: bassColorChosser
+                    width: 50
+                    height: 30
+                    color: "gray"
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            colorDialog.color = bassColorChosser.color
+                                colorDialog.target = bassColorChosser;
+                            colorDialog.open();
+                        }
                     }
-                ]
+                }
 
-            }
+                Label {
+                    text: "Chord:"
+                }
+                Rectangle {
+                    id: chordColorChosser
+                    width: 50
+                    height: 30
+                    color: "gray"
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            colorDialog.color = chordColorChosser.color
+                                colorDialog.target = chordColorChosser;
+                            colorDialog.open();
+                        }
+                    }
+                }
 
-            Label {
-                text: "Root:"
-            }
-            Rectangle {
-                id: rootColorChosser
+                Label {
+                    text: "Altered:"
+                }
+                Rectangle {
+                    id: alteredColorChosser
+                    width: 50
+                    height: 30
+                    color: "gray"
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            colorDialog.color = alteredColorChosser.color
+                                colorDialog.target = alteredColorChosser;
+                            colorDialog.open();
+                        }
+                    }
+                }
+
+                Label {
+                    text: "Scale:"
+                }
+                Rectangle {
+                    id: scaleColorChosser
+                    width: 50
+                    height: 30
+                    color: "gray"
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            colorDialog.color = scaleColorChosser.color
+                                colorDialog.target = scaleColorChosser;
+                            colorDialog.open();
+                        }
+                    }
+                }
+
+                /*Label {
+                text: "Invalid:"
+                }
+                Rectangle {
+                id: errorColorChosser
                 width: 50
                 height: 30
                 color: "gray"
                 MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        colorDialog.color = rootColorChosser.color
-                            colorDialog.target = rootColorChosser;
-                        colorDialog.open();
-                    }
+                anchors.fill: parent
+                onClicked: {
+                colorDialog.color = errorColorChosser.color
+                colorDialog.target = errorColorChosser;
+                colorDialog.open();
+                }
+                }
+                }*/
+
+                Label {
+                    text: "Text form"
+                }
+
+                NiceComboBox {
+                    id: lstFormText
+                    model: [{
+                            value: "fingering",
+                            text: "As fingering"
+                        }, {
+                            value: "lyrics",
+                            text: "As lyrics"
+                        }
+                    ]
+
                 }
             }
-
-            Label {
-                text: "Bass:"
-            }
-            Rectangle {
-                id: bassColorChosser
-                width: 50
-                height: 30
-                color: "gray"
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        colorDialog.color = bassColorChosser.color
-                            colorDialog.target = bassColorChosser;
-                        colorDialog.open();
-                    }
-                }
-            }
-
-            Label {
-                text: "Chord:"
-            }
-            Rectangle {
-                id: chordColorChosser
-                width: 50
-                height: 30
-                color: "gray"
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        colorDialog.color = chordColorChosser.color
-                            colorDialog.target = chordColorChosser;
-                        colorDialog.open();
-                    }
-                }
-            }
-
-            Label {
-                text: "Altered:"
-            }
-            Rectangle {
-                id: alteredColorChosser
-                width: 50
-                height: 30
-                color: "gray"
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        colorDialog.color = alteredColorChosser.color
-                            colorDialog.target = alteredColorChosser;
-                        colorDialog.open();
-                    }
-                }
-            }
-
-            Label {
-                text: "Scale:"
-            }
-            Rectangle {
-                id: scaleColorChosser
-                width: 50
-                height: 30
-                color: "gray"
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        colorDialog.color = scaleColorChosser.color
-                            colorDialog.target = scaleColorChosser;
-                        colorDialog.open();
-                    }
-                }
-            }
-
-            /*Label {
-            text: "Invalid:"
-            }
-            Rectangle {
-            id: errorColorChosser
-            width: 50
-            height: 30
-            color: "gray"
-            MouseArea {
-            anchors.fill: parent
-            onClicked: {
-            colorDialog.color = errorColorChosser.color
-            colorDialog.target = errorColorChosser;
-            colorDialog.open();
-            }
-            }
-            }*/
-
-            Label {
-                text: "Text form"
-            }
-
-            NiceComboBox {
-                id: lstFormText
-                model: [{
-                        value: "fingering",
-                        text: "As fingering"
-                    }, {
-                        value: "lyrics",
-                        text: "As lyrics"
-                    }
-                ]
-
-            }
-
-            Flow {
-                Layout.columnSpan: 2
-                SmallCheckBox {
-                    id: chkUseAboveSymbols
-                    text: "Allow using preceeding staves chord symbols"
-					hoverEnabled: true
-					ToolTip.visible: hovered
-                    ToolTip.text: "<p>If a staff has no chord symbols, use the chord symbols of the first <br/>preceeding staff having chord symbols.<br/><p><b><u>Remark</u></b>: When these options are used, SoloAnalyzer must be used <br/>preferably in <b>Concert pitch</b></p></html>"
-                }
-                Text {
-                    text: "TT"
-                }
-            }
-
-            Flow {
-                Layout.columnSpan: 2
-                SmallCheckBox {
-                    id: chkUseBelowSymbols
-                    text: "Allow using following staves chord symbols"
-					hoverEnabled: true
-					ToolTip.visible: hovered
-                    ToolTip.text: "<p>If a staff has no chord symbols, use the chord symbols of the first <br/>following staff having chord symbols.<br/><p><b><u>Remark</u></b>: When these options are used, SoloAnalyzer must be used <br/>preferably in <b>Concert pitch</b></p></html>"
-                }
-                Text {
-                    text: "TT"
-                }
-            }
-
-		}
-
-        Item { // spacer // DEBUG Item/Rectangle
-            implicitWidth: 10
-            Layout.fillHeight: true
         }
+
+        GroupBox {
+            title: "Analyze options..."
+				Layout.alignment: Qt.AlignTop | Qt.AlignRight
+            GridLayout {
+
+                columnSpacing: 10
+                rowSpacing: 10
+	                Layout.fillWidth: true
+			
+				columns: 1
+
+                Flow {
+                    SmallCheckBox {
+                        id: chkLookAhead
+                        text: "Look ahead"
+                        hoverEnabled: true
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Use the next chord if no previous chord has been found (e.g. anacrusis)"
+                    }
+                }
+
+                Flow {
+                    SmallCheckBox {
+                        id: chkUseAboveSymbols
+                        text: "Allow using preceeding staves chord symbols"
+                        hoverEnabled: true
+                        ToolTip.visible: hovered
+                        ToolTip.text: "<p>If a staff has no chord symbols, use the chord symbols of the first <br/>preceeding staff having chord symbols.<br/><p><b><u>Remark</u></b>: When these options are used, SoloAnalyzer must be used <br/>preferably in <b>Concert pitch</b></p>"
+                    }
+                }
+
+                Flow {
+                    SmallCheckBox {
+                        id: chkUseBelowSymbols
+                        text: "Allow using following staves chord symbols"
+                        hoverEnabled: true
+                        ToolTip.visible: hovered
+                        ToolTip.text: "<p>If a staff has no chord symbols, use the chord symbols of the first <br/>following staff having chord symbols.<br/><p><b><u>Remark</u></b>: When these options are used, SoloAnalyzer must be used <br/>preferably in <b>Concert pitch</b></p>"
+                    }
+                }
+
+            }
+        }
+
+        // Item { // spacer // DEBUG Item/Rectangle
+            // implicitWidth: 10
+            // Layout.fillHeight: true
+        // }
         RowLayout {
+			
+			
 
             id: panButtons
             Layout.fillWidth: true
             Layout.fillHeight: false
-
+            Layout.margins: 0
+			Layout.columnSpan: 2
             Button {
                 implicitHeight: buttonBox.contentItem.height
 
@@ -349,6 +385,7 @@ MuseScore {
                     settings.textType = Core.defTextType;
                     settings.useAboveSymbols = Core.defUseAboveSymbols;
                     settings.useBelowSymbols = Core.defUseBelowSymbols;
+                    settings.lookAhead = Core.defLookAhead;
 
                     select(lstColorNote, settings.colorNotes);
                     select(lstNameNote, settings.nameNotes);
@@ -360,14 +397,15 @@ MuseScore {
                     scaleColorChosser.color = settings.scaleColor;
                     alteredColorChosser.color = settings.alteredColor;
                     // errorColorChosser.color = settings.errorColor;
-					
-					chkUseBelowSymbols.checked=settings.useBelowSymbols;
-					chkUseAboveSymbols.checked=settings.useAboveSymbols;
+
+                    chkUseBelowSymbols.checked = settings.useBelowSymbols;
+                    chkUseAboveSymbols.checked = settings.useAboveSymbols;
+                    chkLookAhead.checked = settings.lookAhead;
                 }
                 hoverEnabled: true
-				ToolTip.visible: hovered
+                ToolTip.visible: hovered
                 ToolTip.text: "Reset to default values"
-				
+
             }
 
             Item { // spacer // DEBUG Item/Rectangle
@@ -404,8 +442,9 @@ MuseScore {
                     settings.nameNotes = get(lstNameNote);
                     settings.textType = get(lstFormText);
 
-					settings.useBelowSymbols=chkUseBelowSymbols.checked;
-					settings.useAboveSymbols=chkUseAboveSymbols.checked;
+                    settings.useBelowSymbols = chkUseBelowSymbols.checked;
+                    settings.useAboveSymbols = chkUseAboveSymbols.checked;
+                    settings.lookAhead = chkLookAhead.checked;
 
                     // save values
                     // AUTOMATIC
