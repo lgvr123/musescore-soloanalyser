@@ -1,7 +1,7 @@
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser core plugin
-/* v1.2.2
+/* v1.2.4
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /* 	- 1.1.0: New alteredColor
@@ -12,6 +12,10 @@
 /*  - 1.2.2: Don't analyse the right selection if the selection is further than a certain point in the score 
 /*  - 1.2.2: Bug when first note is far beyond the first chord symbol
 /*  - 1.2.2: LookAhead option
+/*  - 1.2.3: Limit to standard Harmony types
+/*  - 1.2.3: Don't analyze slash notes
+/*  - 1.2.3: Reject invalid chord names or "%" chord names
+/*  - 1.2.4: Option to reject chord within brackets
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -31,6 +35,7 @@ var defChordColor = "dodgerblue";
 var defUseAboveSymbols = true;
 var defUseBelowSymbols = true;
 var defLookAhead = true;
+var defIgnoreBrackettedChords = true;
 
 
 
@@ -51,6 +56,7 @@ function doAnalyse() {
     var useAboveSymbols = (settings.useAboveSymbols!==undefined) ? settings.useAboveSymbols : true
     var useBelowSymbols = (settings.useBelowSymbols!==undefined) ? settings.useBelowSymbols : true
     var lookAhead = (settings.lookAhead!==undefined) ? settings.lookAhead : true
+    var ignoreBrackettedChords = (settings.ignoreBrackettedChords!==undefined) ? settings.ignoreBrackettedChords : true
 
     // if configured for doing nothing (no colours, no names) we use the default values
     if (colorNotes == "none" && nameNotes == "none") {
@@ -92,8 +98,14 @@ function doAnalyse() {
             for (var j = 0; j < annotations.length; j++) {
                 var ann = annotations[j];
                 //console.log("  (" + i + ") " + ann.userName() + " / " + ann.text + " / " + ann.harmonyType);
-                if (ann.type !== Element.HARMONY)
+                if (ann.type !== Element.HARMONY || ann.harmonyType!== HarmonyType.STANDARD ) // Not using the Roman and Nashvill Harmony types 
                     continue;
+
+				if (ignoreBrackettedChords && (ann.text.search(/^\(.+\)$/g)!==-1)) {
+					console.log(segment.tick+": rejecting chord name with parentheses: "+ann.text);
+					continue;
+				}
+
 
                 if (/*(ann.track < trackMin) ||*/(ann.track > trackMax)) // j'analyse aussi ce qui a en amont
                     continue;
@@ -103,12 +115,17 @@ function doAnalyse() {
                 if (byTrack[ann.track] === undefined)
                     byTrack[ann.track] = [];
 
+				var chord = ChordHelper.chordFromText(ann.text);
+				if (chord !== null) {
 				console.log(segment.tick+": adding "+ann.text+" to track "+ann.track);
-                byTrack[ann.track].push({
-                    tick: segment.tick,
-                    chord: ChordHelper.chordFromText(ann.text)
-                });
-
+				    // If the chord is correctly analyzed, add it (to avoid invalid chord names, or "%" chord names)
+				    byTrack[ann.track].push({
+				        tick: segment.tick,
+				        chord: chord
+				    });
+				} else {
+					console.log(segment.tick+": rejecting invalid chord name: "+ann.text);
+				}
             }
         }
 
@@ -136,7 +153,8 @@ function doAnalyse() {
         console.log(track + ": " + ((byTrack[track] !== undefined) ? byTrack[track].length : 0));
         if (byTrack[track] !== undefined) {
             for (var x = 0; x < byTrack[track].length; x++) {
-                console.log("   " + byTrack[track][x].tick + ": " + byTrack[track][x].chord.name);
+				var name=(byTrack[track][x].chord!==null)?byTrack[track][x].chord.name:"~undefined chord~";
+                console.log("   " + byTrack[track][x].tick + ": " + name);
             }
         }
     }
@@ -179,6 +197,9 @@ function doAnalyse() {
                 var asLyrics = [];
                 for (var j = 0; j < notes.length; j++) {
                     var note = notes[j];
+					
+					if (note.headGroup === NoteHeadGroup.HEAD_SLASH) continue; // Don't analyse slash notes
+					
                     var color = null;
                     var degree = null;
 
