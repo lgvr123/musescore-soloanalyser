@@ -15,7 +15,7 @@ import "soloanalyser"
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser plugin
-/* v1.4.2
+/* v1.4.3
 /* ChangeLog:
 /*  - 1.3.0: Initial version based on SoloAnalyser 1.3.0
 /*  - 1.3.1: New altered notes color
@@ -25,14 +25,17 @@ import "soloanalyser"
 /*  - 1.4.2: Don't analyse the right selection if the selection is further than a certain point in the score
 /*  - 1.4.2: Bug when first note is far beyond the first chord symbol
 /*  - 1.4.2: LookAhead option + new UI layout
+/*  - 1.4.3: New plugin menu's structure
+/*  - 1.4.3: Qt.quit issue
+/*  - 1.4.3: IgnoreBrackettedChords option
 /**********************************************/
 
 MuseScore {
-    menuPath: "Plugins." + pluginName
+    menuPath: "Plugins.Solo Analyser." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.4.2"
+    version: "1.4.3"
 
-    readonly property var pluginName: "Solo Analyser - Interactive"
+    readonly property var pluginName: "Interactive"
 
     pluginType: "dialog"
     //implicitWidth: controls.implictWidth * 1.5
@@ -76,6 +79,7 @@ MuseScore {
         chkUseAboveSymbols.checked = settings.useAboveSymbols;
         chkUseBelowSymbols.checked = settings.useBelowSymbols;
         chkLookAhead.checked = settings.lookAhead;
+        chkIgnoreBrackettedChords.checked = settings.ignoreBrackettedChords;
 
     }
 
@@ -111,6 +115,7 @@ MuseScore {
         property var useBelowSymbols: Core.defUseBelowSymbols
         property var useAboveSymbols: Core.defUseAboveSymbols
         property var lookAhead: Core.defLookAhead
+        property var ignoreBrackettedChords: Core.defIgnoreBrackettedChords
     }
 
     GridLayout {
@@ -352,6 +357,15 @@ MuseScore {
                         ToolTip.text: "<p>If a staff has no chord symbols, use the chord symbols of the first <br/>following staff having chord symbols.<br/><p><b><u>Remark</u></b>: When these options are used, SoloAnalyzer must be used <br/>preferably in <b>Concert pitch</b></p>"
                     }
                 }
+                Flow {
+                    SmallCheckBox {
+                        id: chkIgnoreBrackettedChords
+                        text: "Ignore chord names in parentheses"
+                        hoverEnabled: true
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Chord names surrounded by parentheses will be ignore for the analyse."
+                    }
+                }
 
             }
         }
@@ -386,6 +400,7 @@ MuseScore {
                     settings.useAboveSymbols = Core.defUseAboveSymbols;
                     settings.useBelowSymbols = Core.defUseBelowSymbols;
                     settings.lookAhead = Core.defLookAhead;
+                    settings.ignoreBrackettedChords = Core.defIgnoreBrackettedChords;
 
                     select(lstColorNote, settings.colorNotes);
                     select(lstNameNote, settings.nameNotes);
@@ -401,6 +416,7 @@ MuseScore {
                     chkUseBelowSymbols.checked = settings.useBelowSymbols;
                     chkUseAboveSymbols.checked = settings.useAboveSymbols;
                     chkLookAhead.checked = settings.lookAhead;
+                    chkIgnoreBrackettedChords.checked = settings.ignoreBrackettedChords;
                 }
                 hoverEnabled: true
                 ToolTip.visible: hovered
@@ -445,24 +461,30 @@ MuseScore {
                     settings.useBelowSymbols = chkUseBelowSymbols.checked;
                     settings.useAboveSymbols = chkUseAboveSymbols.checked;
                     settings.lookAhead = chkLookAhead.checked;
+                    settings.ignoreBrackettedChords = chkIgnoreBrackettedChords.checked;
 
                     // save values
                     // AUTOMATIC
 
                     // execute
                     Core.doAnalyse();
-                    Qt.quit();
-
+                    //Qt.quit();
+                    mainWindow.parent.Window.window.close();
+                  
                 }
 
                 onClicked: {
                     console.log("~~~~~~~~~~~~" + button.text + "~~~~~~~~~~~~");
                     if (button == btnClear) {
                         Core.clearAnalyse();
-                        Qt.quit();
+                        //Qt.quit();
+                        mainWindow.parent.Window.window.close();
                     }
                 }
-                onRejected: Qt.quit()
+                onRejected: {
+                  //Qt.quit()
+                  mainWindow.parent.Window.window.close();
+                  }
 
             }
         }
@@ -491,7 +513,7 @@ MuseScore {
         text: "Invalid zparkingb/selectionhelper.js, zparkingb/notehelper.js or zparkingb/chordanalyser.js versions.\nExpecting "
          + selHelperVersion + " and " + noteHelperVersion + " and " + chordHelperVersion + ".\n" + pluginName + " will stop here."
         onAccepted: {
-            Qt.quit()
+            mainWindow.parent.Window.window.close(); //Qt.quit()
         }
     }
 

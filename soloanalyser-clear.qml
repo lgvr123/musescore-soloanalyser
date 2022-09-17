@@ -9,33 +9,19 @@ import "soloanalyser/core.js" as Core
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser plugin
-/* v1.4.4
+/* v1.0.1
 /* ChangeLog:
-/* 	- 1.0.0: Initial release
-/*  - 1.0.1: Using of ChordAnalyzer shared library
-/*  - 1.1.0: New coloring approach
-/*  - 1.2.0: Colors and names (optionnaly) all the notes
-/*  - 1.2.1: Uses the bass note if specified in the chord
-/*  - 1.2.1: Minor improvments on the chord recognission
-/*  - 1.3.0: Code moved to a library
-/*  - 1.3.1: New altered notes color
-/*  - 1.4.0: Multi track and voices
-/*  - 1.4.0: Settings for the multi track and voices
-/*  - 1.4.1: Bug with some transposing instruments + bug when initiating useBelow/AboveSymbols 
-/*  - 1.4.2: Don't analyse the right selection if the selection is further than a certain point in the score 
-/*  - 1.4.2: Bug when first note is far beyond the first chord symbol
-/*  - 1.4.2: LookAhead option
-/*  - 1.4.3: (see Core.js log 1.2.3)
-/*  - 1.4.4: IgnoreBrackettedChords option
-/* 	- 1.4.4: Qt.quit issue
+/* 	- 1.0.0: Initial release (extract from SoloAnalyser-Interactive)
+/* 	- 1.0.1: Qt.quit issue
+
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins.Solo Analyser." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.4.4"
+    version: "1.0.1"
 
-    readonly property var pluginName: "Analyse"
+    readonly property var pluginName: "Clear"
 
     readonly property var selHelperVersion: "1.3.0"
     readonly property var noteHelperVersion: "1.0.3"
@@ -53,7 +39,7 @@ MuseScore {
         }
 
 
-        Core.doAnalyse();
+        Core.clearAnalyse();
 
     }
 
@@ -73,7 +59,6 @@ MuseScore {
 		property var useBelowSymbols : Core.defUseBelowSymbols
 		property var useAboveSymbols : Core.defUseAboveSymbols
 		property var lookAhead : Core.defLookAhead
-		property var ignoreBrackettedChords : Core.defIgnoreBrackettedChords
     }
 
     MessageDialog {
