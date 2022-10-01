@@ -3,11 +3,15 @@
 
 ![SoloAnalyser in action](/demo/soloanalyzer-demo.png)
 
-## What's new in 1.4.2 ?
-* [New] Look ahead option, useful for anacrusis
-* [Correction] Invalid analysis for some transposing instruments
-* [Correction] Issue when the selection was too far in the score 
-* [Correction] Issue when the first note to analyse is far beyond the first chord symbol
+## What's new in 1.4.4 ?
+* [New] Option to reject chord within brackets (e.g. a chord labeled "(C7)" will not be analysed)
+* [New] Clear plugin
+* [Improvment] Qt.quit issue
+* [Improvment] Limit to standard Harmony types
+* [Improvment] Don't analyze slash notes
+* [Improvment] Reject invalid chord names or "%" chord names
+* [Improvment] Plugins menu organisation
+* [Correction] Incorrect handling of Aug, Sus2, Sus4, Dim7 chords
 
 ## Plugins
 
