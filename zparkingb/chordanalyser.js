@@ -23,6 +23,7 @@
 /*  - 1.2.15: Invalid definition of Aug
 /*  - 1.2.16: Invalid definition of Aug
 /*  - 1.2.17: Invalid definition of Dim7
+/*  - 1.2.18: 7 as bass was labelled #13
 /**********************************************/
 // -----------------------------------------------------------------------
 // --- Vesionning-----------------------------------------
@@ -408,7 +409,7 @@ function scaleFromText(text, bass) {
         n13 = 9;
         pushToKeys(keys, n13, "13");
         pushToNotes(chordnotes, n13, "13");
-    } else if (((at = [8, 9, 10].indexOf(bass)) >= 0) && (bass != n6)) {
+    } else if (((at = [8, 9, 10].indexOf(bass)) >= 0) && ([n5, n6, n7].indexOf(bass) < 0)) { // The bass is b13,13,#13 but is aot already defined as the 5,6 or 7.
         n13 = bass;
         pushToKeys(keys, bass, "bass as 6/13");
         pushToNotes(chordnotes, bass, ["b", "", "#"][at] + "13");
@@ -458,9 +459,10 @@ function pushToNotes(collection, note, role) {
     var exist = getNote(collection, note);
 
     if (exist) {
-        console.log("Not adding " + role + "(" + note + ") because it exist as " + exist.role);
+        console.log("Not adding " + role + " (" + note + ") because it exist as " + exist.role);
         return;
     }
+    console.log("....pushing note >>" + note + " as " + role + "<<");
     collection.push({
         "note": note,
         "role": role
@@ -468,10 +470,10 @@ function pushToNotes(collection, note, role) {
 }
 
 function pushToKeys(keys, value, comment) {
-    // console.log("....pushing >>" + value + "<< (" + comment + ")");
+    console.log("....pushing key >>" + value + "<< (" + comment + ")");
 	
 	if(keys.indexOf(value)>=0) {
-        console.log("Not adding " +  value + "to keys because it is already present");
+        console.log("Not adding " +  value + " to keys because it is already present");
         return;
 	}
 	
