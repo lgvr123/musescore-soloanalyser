@@ -1,7 +1,7 @@
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser core plugin
-/* v1.2.4
+/* v1.2.5
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /* 	- 1.1.0: New alteredColor
@@ -16,6 +16,7 @@
 /*  - 1.2.3: Don't analyze slash notes
 /*  - 1.2.3: Reject invalid chord names or "%" chord names
 /*  - 1.2.4: Option to reject chord within brackets
+/*  - 1.2.5: Don't analyse drul staves
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -165,6 +166,22 @@ function doAnalyse() {
     // processing
     for (var track = trackMin; track <= trackMax; track++) {
 		console.log("~~~~ processing track "+track+" ~~~~");
+        
+        // Is this track a pitched staff (opposed to a drumstaff) ?
+        var isdrumset=false;
+        for (var i = 0; i < curScore.parts.length; i++) {
+            var part = curScore.parts[i];
+            if (track>=part.startTrack && track<part.endTrack) {
+                console.log("The track belongs to part " + i + ": " + part.startTrack + "/" + part.endTrack + ": " + part.hasDrumStaff + "/" + part.hasPitchedStaff);
+                isdrumset=part.hasDrumStaff;
+                break;
+            }
+        }
+        if (isdrumset) {
+            console.log("~ ~  bypassed because is drumset  ~ ~");
+            continue;
+        }
+        // ok, this is not a drumStaff
         cursor.track = track;
         cursor.rewindToTick(segMin);
         var segment = cursor.segment;

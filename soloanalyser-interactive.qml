@@ -15,7 +15,7 @@ import "soloanalyser"
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser plugin
-/* v1.4.3
+/* v1.4.4
 /* ChangeLog:
 /*  - 1.3.0: Initial version based on SoloAnalyser 1.3.0
 /*  - 1.3.1: New altered notes color
@@ -28,12 +28,13 @@ import "soloanalyser"
 /*  - 1.4.3: New plugin menu's structure
 /*  - 1.4.3: Qt.quit issue
 /*  - 1.4.3: IgnoreBrackettedChords option
+/*  - 1.4.4: Don't analyse drum staves
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins.Solo Analyser." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.4.3"
+    version: "1.4.4"
 
     readonly property var pluginName: "Interactive"
 

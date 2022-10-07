@@ -9,7 +9,7 @@ import "soloanalyser/core.js" as Core
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser plugin
-/* v1.4.4
+/* v1.4.5
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /*  - 1.0.1: Using of ChordAnalyzer shared library
@@ -28,12 +28,13 @@ import "soloanalyser/core.js" as Core
 /*  - 1.4.3: (see Core.js log 1.2.3)
 /*  - 1.4.4: IgnoreBrackettedChords option
 /* 	- 1.4.4: Qt.quit issue
+/*  - 1.4.5: Don't analyse drum staves
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins.Solo Analyser." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.4.4"
+    version: "1.4.5"
 
     readonly property var pluginName: "Analyse"
 
