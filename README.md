@@ -1,6 +1,6 @@
 # Solo Analyser plugin for MuseScore 3.x and 4.x
-<p align="center"><img src="/soloanalyser/logoSoloAnalyser.png" Alt="logo" width="300" /><img src="/soloanalyser/logoChordAnalyser.png" Alt="logo" width="300" /></p>
 The *Solo Analyser plugin* will highlight key notes in a Solo score.
+<p align="center"><img src="/soloanalyser/logoSoloAnalyser.png" Alt="logo" width="300" />&nbsp;<img src="/soloanalyser/logoChordAnalyser.png" Alt="logo" width="300" /></p>
 
 ![SoloAnalyser in action](/demo/soloanalyzer-demo.png)
 
