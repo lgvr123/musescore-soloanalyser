@@ -1,17 +1,12 @@
-# Solo Analyser plugin for MuseScore 3.x
-*Solo Analyser plugin for MuseScore 3.x* will highlight key notes in a Solo score.
+# Solo Analyser plugin for MuseScore 3.x and 4.x
+<p align="center"><img src="/soloanalyser/logoSoloAnalyser.png" Alt="logo" width="300" /><img src="/soloanalyser/logoChordAnalyser.png" Alt="logo" width="300" /></p>
+The *Solo Analyser plugin* will highlight key notes in a Solo score.
 
 ![SoloAnalyser in action](/demo/soloanalyzer-demo.png)
 
-## What's new in 1.4.4 ?
-* [New] Option to reject chord within brackets (e.g. a chord labeled "(C7)" will not be analysed)
-* [New] Clear plugin
-* [Improvment] Qt.quit issue
-* [Improvment] Limit to standard Harmony types
-* [Improvment] Don't analyze slash notes
-* [Improvment] Reject invalid chord names or "%" chord names
-* [Improvment] Plugins menu organisation
-* [Correction] Incorrect handling of Aug, Sus2, Sus4, Dim7 chords
+## What's new in 1.4.6 ?
+* [Improvement] Don't analyse drum tracks
+* [Misc.] New plugin folder structure and port to MS4
 
 ## Plugins
 
@@ -36,6 +31,9 @@ Nevertheless, when analysing a complete score with transposing and non-transposi
 ## Download and Install ##
 Download the [last stable version](https://github.com/lgvr123/musescore-soloanalyser/releases)
 For installation see [Plugins](https://musescore.org/en/handbook/3/plugins).
+### Remark
+The whole zip content (so the `soloanalyser\ ` folder) must be unzipped **as such** in your plugin folder. <br/>
+If you had a previous version installed, please delete the previous `soloanalyser*.qml` and `chordnalyser.qml`files to avoid conflicts.
 
 ## Sponsorship ##
 If you appreciate my plugins, you can support and sponsor their development on the following platforms:
