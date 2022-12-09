@@ -7,15 +7,13 @@ import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 
-import "zparkingb/selectionhelper.js" as SelHelper
-import "zparkingb/notehelper.js" as NoteHelper
-import "zparkingb/chordanalyser.js" as ChordHelper
-import "soloanalyser/core.js" as Core
-import "soloanalyser"
+import "selectionhelper.js" as SelHelper
+import "notehelper.js" as NoteHelper
+import "chordanalyser.js" as ChordHelper
+import "core.js" as Core
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser plugin
-/* v1.4.4
 /* ChangeLog:
 /*  - 1.3.0: Initial version based on SoloAnalyser 1.3.0
 /*  - 1.3.1: New altered notes color
@@ -29,38 +27,36 @@ import "soloanalyser"
 /*  - 1.4.3: Qt.quit issue
 /*  - 1.4.3: IgnoreBrackettedChords option
 /*  - 1.4.4: Don't analyse drum staves
+/* 	- 1.4.5: Port to MuseScore 4.0
+/* 	- 1.4.5: New plugin folder strucutre
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins.Solo Analyser." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.4.4"
+    version: "1.4.5"
 
     readonly property var pluginName: "Interactive"
 
     pluginType: "dialog"
-    //implicitWidth: controls.implictWidth * 1.5
+/*    //implicitWidth: controls.implictWidth * 1.5
     //implicitHeight: controls.implicitHeight
     implicitWidth: 900
-    implicitHeight: 500
+    implicitHeight: 500*/
+    width: mainRow.childrenRect.width + mainRow.anchors.leftMargin  + mainRow.anchors.rightMargin
+    height: mainRow.childrenRect.height + mainRow.anchors.topMargin  + mainRow.anchors.bottomMargin
 
     id: mainWindow
 
-    readonly property var selHelperVersion: "1.3.0"
-    readonly property var noteHelperVersion: "1.0.3"
-    readonly property var chordHelperVersion: "1.2.13"
+    Component.onCompleted : {
+        if (mscoreMajorVersion >= 4) {
+            mainWindow.title = "Solo Analyser "+pluginName;
+            mainWindow.thumbnailName = "logoSoloAnalyserInteractive.png";
+            mainWindow.categoryCode = "color-notes";
+        }
+    }    
 
     onRun: {
-
-        if ((typeof(SelHelper.checktVersion) !== 'function') || !SelHelper.checktVersion(selHelperVersion) ||
-            (typeof(NoteHelper.checktVersion) !== 'function') || !NoteHelper.checktVersion(noteHelperVersion) ||
-            (typeof(ChordHelper.checkVersion) !== 'function') || !ChordHelper.checkVersion(chordHelperVersion)) {
-            console.log("Invalid zparkingb/selectionhelper.js, zparkingb/notehelper.js or zparkingb/chordanalyser.js versions. Expecting "
-                 + selHelperVersion + " and " + noteHelperVersion + " and " + chordHelperVersion + ".");
-            invalidLibraryDialog.open();
-            return;
-        }
-
         // 1) Read config file
         // AUTOMATIC
 
@@ -120,6 +116,7 @@ MuseScore {
     }
 
     GridLayout {
+        id: mainRow
         anchors.fill: parent
         anchors.topMargin: 20
         anchors.leftMargin: 20
@@ -127,7 +124,7 @@ MuseScore {
         anchors.bottomMargin: 10
         
 		columns: 2
-                columnSpacing: 5
+        columnSpacing: 5
 
 
         GroupBox {
@@ -505,17 +502,6 @@ MuseScore {
             console.log("Canceled")
         }
         // Component.onCompleted: visible = true
-    }
-    MessageDialog {
-        id: invalidLibraryDialog
-        icon: StandardIcon.Critical
-        standardButtons: StandardButton.Ok
-        title: 'Invalid libraries'
-        text: "Invalid zparkingb/selectionhelper.js, zparkingb/notehelper.js or zparkingb/chordanalyser.js versions.\nExpecting "
-         + selHelperVersion + " and " + noteHelperVersion + " and " + chordHelperVersion + ".\n" + pluginName + " will stop here."
-        onAccepted: {
-            mainWindow.parent.Window.window.close(); //Qt.quit()
-        }
     }
 
 }

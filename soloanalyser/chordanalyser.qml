@@ -5,20 +5,39 @@ import QtQuick.Window 2.2
 import QtQuick.Dialogs 1.2
 import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts 1.3
-import "zparkingb/chordanalyser.js" as ChordHelper
-import "zparkingb/notehelper.js" as NoteHelper // required by chordanalyser.js
-import "soloanalyser"
+import "chordanalyser.js" as ChordHelper
+import "notehelper.js" as NoteHelper // required by chordanalyser.js
+
+/**********************
+/* Parking B - MuseScore - ChordAnalyser plugin
+/* ChangeLog:
+/* 	- 1.0.0: Initial release
+/*  - 1.0.1: Limit to standard Harmony types
+/*  - 1.0.1: Qt.quit issue
+/*  - 1.0.2: New plugin folder structure
+/*  - 1.0.2: MS4 port
+/**********************************************/
 
 MuseScore {
     menuPath: "Plugins." + pluginName
     description: "Uses the latest 'chordanalyzer.js' library to describe the selected chords."
-    version: "1.0.0"
+    version: "1.0.2"
     readonly property var pluginName: "Chord analyzer"
 
     pluginType: "dialog"
     requiresScore: false
     width: 600
     height: 620
+	
+	id: mainWindow
+
+    Component.onCompleted : {
+        if (mscoreMajorVersion >= 4) {
+            mainWindow.title = pluginName;
+            mainWindow.thumbnailName = "logoChordAnalyser.png";
+            mainWindow.categoryCode= "analysis";
+        }
+    }
 
     onRun: {
         // === TEMPLATE (begin) ===
@@ -49,7 +68,7 @@ MuseScore {
         for (var i = 0; i < el.length; i++) {
             var element = el[i];
             console.log("\t" + i + ") " + element.type + " (" + element.userName() + ")");
-            if (element.type == Element.HARMONY) {
+            if (element.type === Element.HARMONY && element.harmonyType === HarmonyType.STANDARD ) {
                 harmonies.push(element.text);
             }
         }
@@ -279,7 +298,8 @@ MuseScore {
                     id: buttonBox
                     text: "Close"
 
-                    onClicked: Qt.quit()
+                    onClicked: mainWindow.parent.Window.window.close(); //Qt.quit()
+                    // onClicked: Qt.exit(0) // ne fonctionne pas
                 }
             }
         } // button rows

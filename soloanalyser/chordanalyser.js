@@ -1,6 +1,6 @@
 /**********************
 /* Parking B - MuseScore - Chord analyser
-/* v1.2.16
+/* v1.2.19
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /*  - 1.0.1: The 7th degree was sometime erased
@@ -24,6 +24,7 @@
 /*  - 1.2.16: Invalid definition of Aug
 /*  - 1.2.17: Invalid definition of Dim7
 /*  - 1.2.18: 7 as bass was labelled #13
+/*  - 1.2.19: Syntax corrections for Netbeans
 /**********************************************/
 // -----------------------------------------------------------------------
 // --- Vesionning-----------------------------------------
@@ -31,15 +32,15 @@
 var default_names = ["1", "b9", "2", "#9", "b11", "4", "#11", "(5)", "m6", "M6", "m7", "M7"];
 
 function checkVersion(expected) {
-    var version = "1.2.16";
+    var version = "1.2.19";
 
     var aV = version.split('.').map(function (v) {
         return parseInt(v);
     });
-    var aE = (expected && (expected != null)) ? expected.split('.').map(function (v) {
+    var aE = (expected && (expected !== null)) ? expected.split('.').map(function (v) {
         return parseInt(v);
     }) : [99];
-    if (aE.length == 0)
+    if (aE.length === 0)
         aE = [99];
 
     for (var i = 0; (i < aV.length) && (i < aE.length); i++) {
@@ -63,28 +64,28 @@ function chordFromText(source) {
     var rootacc = getRootAccidental(text);
     text = rootacc.remaingtext;
 
-    if (rootacc.tpc == null) {
+    if (rootacc.tpc === null) {
         console.log("!! Could not found >>" + rootacc.root + "-" + rootacc.alt + "<<");
         return null;
     }
 
     // Chord type
-    var scale;
+    var scale=null;
 
     // Bass and scale
     var bassacc = null;
-    if (bass != null) {
+    if (bass !== null) {
         bassacc = getRootAccidental(bass);
-        if (bassacc.tpc != null) {
+        if (bassacc.tpc !== null) {
             var relpitch = (bassacc.tpc.pitch - rootacc.tpc.pitch + 12) % 12;
             scale = scaleFromText(text, relpitch);
         }
     }
-    if (scale == null)
+    if (scale === null)
         scale = scaleFromText(text);
 
     // var chord = new chordClass(tpc, text, n3, n5, n7, keys);
-    var chord = new chordClass(rootacc.tpc, text, scale, (bassacc != null) ? bassacc.tpc : null);
+    var chord = new chordClass(rootacc.tpc, text, scale, (bassacc !== null) ? bassacc.tpc : null);
 
     console.log(">>>" + chord);
 
@@ -162,8 +163,8 @@ function scaleFromText(text, bass) {
     text = new chordTextClass(text.replace("add", ""));
 
     bass = parseInt(bass);
-    if ((bass !== bass) || (bass == 0)) // testing NaN
-        bass = null
+    if ((bass !== bass) || (bass === 0)) // testing NaN
+        bass = null;
 
             var at = null;
     // Base
@@ -263,11 +264,11 @@ function scaleFromText(text, bass) {
 
     // Compléments
     // ..7..
-    if (n7 == null && (text.includes("maj7") || text.includes("ma7") || text.startsWith("t7") || text.startsWith("t") || text.startsWith("^7") || text.startsWith("^"))) {
+    if (n7 === null && (text.includes("maj7") || text.includes("ma7") || text.startsWith("t7") || text.startsWith("t") || text.startsWith("^7") || text.startsWith("^"))) {
         console.log("Has M7");
         n7 = 11;
     } else 
-        if (n7 == null && text.includes("7")) {
+        if (n7 === null && text.includes("7")) {
            if (def7 == null) {
                 def7 = 10;
                 console.log("Has m7");
@@ -278,10 +279,10 @@ function scaleFromText(text, bass) {
         };
 
     // ..3..
-    if (n3 != null) {
+    if (n3 !== null) {
         pushToKeys(keys, n3, "n3");
         pushToNotes(chordnotes, n3, "3");
-    } else if (def3 != null) {
+    } else if (def3 !== null) {
         pushToKeys(keys, def3, "def3");
     }
 
@@ -296,10 +297,10 @@ function scaleFromText(text, bass) {
         n5role = "#5";
     }
 
-    if (n5 != null) {
+    if (n5 !== null) {
         pushToKeys(keys, n5, "n5");
         pushToNotes(chordnotes, n5, n5role);
-    } else if (bass == 7) {
+    } else if (bass === 7) {
         pushToKeys(keys, bass, "bass as 5");
         pushToNotes(chordnotes, bass, "5");
     } else {
@@ -329,11 +330,11 @@ function scaleFromText(text, bass) {
         pushToNotes(chordnotes, bass, ["b", "", "#"][at] + "9(B)");
     }
 
-    if (n2 != null) {
+    if (n2 !== null) {
         pushToKeys(keys, n2, "n2");
         pushToNotes(chordnotes, n2, "2");
-    } else if (n9 == null) {
-        if (def2 == null) { // 15/3: alignement sur Supercollider
+    } else if (n9 === null) {
+        if (def2 === null) { // 15/3: alignement sur Supercollider
             def2 = 2;
         }
         pushToKeys(keys, def2, "def2");
@@ -345,7 +346,7 @@ function scaleFromText(text, bass) {
     }
 
     // Adding an explicit 7 if a 9 is present
-    if ((n9 != null) && (n7 == null) && (def7 != null)) {
+    if ((n9 !== null) && (n7 === null) && (def7 !== null)) {
         // n7 = def7;
         n7 = 10;
     }
@@ -367,18 +368,18 @@ function scaleFromText(text, bass) {
         n11 = 5;
         pushToKeys(keys, n11, "11");
         pushToNotes(chordnotes, n11, "11");
-    } else if (((at = [4, 5, 6].indexOf(bass)) >= 0) && (bass != n4)) {
+    } else if (((at = [4, 5, 6].indexOf(bass)) >= 0) && (bass!==n4)){
         n11 = bass;
         pushToKeys(keys, bass, "bass as 4/11");
         pushToNotes(chordnotes, bass, ["b", "", "#"][at] + "11");
 
     }
 
-    if (n4 != null) {
+    if (n4 !== null) {
         pushToKeys(keys, n4, "n4");
         pushToNotes(chordnotes, n4, "4");
-    } else if (n11 == null) {
-        if (def4 == null)
+    } else if (n11 === null) {
+        if (def4 === null)
             def4 = 5;
         pushToKeys(keys, def4, "def4");
         if (getNote(chordnotes, def4) === undefined)
@@ -414,7 +415,7 @@ function scaleFromText(text, bass) {
         pushToKeys(keys, bass, "bass as 6/13");
         pushToNotes(chordnotes, bass, ["b", "", "#"][at] + "13");
     } else if (n6===null) {
-        if (def6 == null)
+        if (def6 === null)
             def6 = 9;
         pushToKeys(keys, def6, "def6");
         if (getNote(chordnotes, def6) === undefined)
@@ -422,7 +423,7 @@ function scaleFromText(text, bass) {
     }
 
     //..7..
-    if (n7 != null) {
+    if (n7 !== null) {
         pushToKeys(keys, n7, "n7");
         pushToNotes(chordnotes, n7, "7");
     } else if ((at = [10, 11].indexOf(bass)) >= 0) {
@@ -430,7 +431,7 @@ function scaleFromText(text, bass) {
         pushToKeys(keys, bass, "bass as 7");
         pushToNotes(chordnotes, bass, ["m", "M"][at] + "7");
     } else {
-        if (def7 == null)
+        if (def7 === null)
             def7 = 11;
         pushToKeys(keys, def7, "def7");
         if (getNote(chordnotes, def7) === undefined)
@@ -442,7 +443,7 @@ function scaleFromText(text, bass) {
     for (var n = 1; n < 12; n++) {
         if ((getNote(allnotes, n) === undefined) && (n !== bass)) {
             var at;
-            var dn = (n3 == null && (at = [3, 4].indexOf(n)) >= 0) ? ["m3", "M3"][at] : default_names[n];
+		    var dn = (n3 === null && (at=[3,4].indexOf(n))>=0) ? ["m3","M3"][at] : default_names[n];
             pushToNotes(allnotes, n, dn);
         } else if (n === bass) {
             pushToNotes(allnotes, n, "bass");
@@ -484,10 +485,10 @@ function chordTextClass(str) {
     var s = str;
     this.replace = function (r1, r2) {
         s = s.replace(r1, r2);
-    }
+    };
     this.toString = function () {
         return s;
-    }
+    };
 
     this.startsWith = function (test) {
         if (s.startsWith(test)) {
@@ -496,7 +497,7 @@ function chordTextClass(str) {
         } else {
             return false;
         }
-    }
+    };
 
     this.includes = function (test) {
         var pos = s.indexOf(test);
@@ -507,7 +508,7 @@ function chordTextClass(str) {
         } else {
             return false;
         }
-    }
+    };
 }
 
 function chordClass(tpc, name, scale, basstpc) {
@@ -516,7 +517,7 @@ function chordClass(tpc, name, scale, basstpc) {
     this.root = tpc.raw;
     this.accidental = tpc.accidental;
     this.scale = scale;
-    if (basstpc == null) {
+	if (basstpc == null) { // keeping "==" on purpose
         this.bass = null;
     } else {
         this.bass = {
@@ -524,7 +525,7 @@ function chordClass(tpc, name, scale, basstpc) {
             "pitch": basstpc.pitch,
             "accidental": basstpc.accidental,
             "root": basstpc.raw
-        }
+	    };
     }
     Object.defineProperty(this, "keys", {
         get: function () {
@@ -571,7 +572,7 @@ function getRole(roles, role) {
     var res = roles.filter(function (e) {
         return (e.role === ('' + role));
     });
-    return (res.length == 0) ? undefined : res[0];
+    return (res.length === 0) ? undefined : res[0];
 }
 
 function getNote(roles, note) {
@@ -582,18 +583,22 @@ function getNote(roles, note) {
     var res = roles.filter(function (e) {
         return (e.note === note);
     });
-    return (res.length == 0) ? undefined : res[0];
+    return (res.length === 0) ? undefined : res[0];
 }
 
 function scaleClass(keys, chordnotes, allnotes, outside) {
-    this.keys = (!keys || (keys == null)) ? [] : keys;
-    this.chordnotes = (!chordnotes || (chordnotes == null)) ? [] : chordnotes;
-    this.allnotes = (!allnotes || (allnotes == null)) ? default_names.map(function (role, idx) { {
+    this.keys = (!keys || (keys == null)) ? [] : keys; // keeping "==" on purpose
+    this.chordnotes = (!chordnotes || (chordnotes == null)) ? [] : chordnotes; // keeping "==" on purpose
+    this.allnotes = (!allnotes || (allnotes == null)) ? default_names.map(function (role, idx) { // keeping "==" on purpose
+        var nr={
             "note": idx,
             "role": role
+        };
+        
+        return nr;
         }
-    }) : allnotes;
-    this.outside = (!outside || (outside == null)) ? [] : outside;
+    ) : allnotes;
+    this.outside = (!outside || (outside == null)) ? [] : outside; // keeping "==" on purpose
 
     var n3 = this.chordnotes.filter(function (e) {
         return (parseInt(e.role, 10) === 3);
@@ -604,7 +609,7 @@ function scaleClass(keys, chordnotes, allnotes, outside) {
     this.keys.sort(function compareFn(a, b) {
         if (a < b)
             return -1;
-        else if (a == b)
+        else if (a === b)
             return 0;
         else
             return 1;
@@ -626,7 +631,7 @@ function scaleClass(keys, chordnotes, allnotes, outside) {
             return e.role + ": " + e.note;
         }).join(', ') + "  === " +
         keys.sort(function (a, b) {
-            return a - b
+            return a - b;
         }).join(', '); ;
 
     };
