@@ -28,21 +28,18 @@ import "core.js" as Core
 /*  - 1.4.3: IgnoreBrackettedChords option
 /*  - 1.4.4: Don't analyse drum staves
 /* 	- 1.4.5: Port to MuseScore 4.0
-/* 	- 1.4.5: New plugin folder strucutre
+/* 	- 1.4.5: New plugin folder structure
+/* 	- 1.4.6: Darkmode
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins.Solo Analyser." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.4.5"
+    version: "1.4.6"
 
     readonly property var pluginName: "Interactive"
 
     pluginType: "dialog"
-/*    //implicitWidth: controls.implictWidth * 1.5
-    //implicitHeight: controls.implicitHeight
-    implicitWidth: 900
-    implicitHeight: 500*/
     width: mainRow.childrenRect.width + mainRow.anchors.leftMargin  + mainRow.anchors.rightMargin
     height: mainRow.childrenRect.height + mainRow.anchors.topMargin  + mainRow.anchors.bottomMargin
 
@@ -140,8 +137,8 @@ MuseScore {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
 
-                Label {
-                    text: "Note coloring"
+                NiceLabel {
+                    text: "Note coloring  : "
                     //Tooltip.text : "Color all notes or only the ones defined by the chord";
                     Layout.alignment: Qt.AlignLeft
                     Layout.fillHeight: false
@@ -164,8 +161,8 @@ MuseScore {
 
                 }
 
-                Label {
-                    text: "Note name"
+                NiceLabel {
+                    text: "Note name  : "
                     //Tooltip.text : "Name all notes or only the ones defined by the chord";
                     Layout.alignment: Qt.AlignLeft
                     Layout.fillHeight: false
@@ -188,8 +185,8 @@ MuseScore {
 
                 }
 
-                Label {
-                    text: "Root:"
+                NiceLabel {
+                    text: "Root : "
                 }
                 Rectangle {
                     id: rootColorChosser
@@ -206,8 +203,8 @@ MuseScore {
                     }
                 }
 
-                Label {
-                    text: "Bass:"
+                NiceLabel {
+                    text: "Bass : "
                 }
                 Rectangle {
                     id: bassColorChosser
@@ -224,8 +221,8 @@ MuseScore {
                     }
                 }
 
-                Label {
-                    text: "Chord:"
+                NiceLabel {
+                    text: "Chord : "
                 }
                 Rectangle {
                     id: chordColorChosser
@@ -242,8 +239,8 @@ MuseScore {
                     }
                 }
 
-                Label {
-                    text: "Altered:"
+                NiceLabel {
+                    text: "Altered : "
                 }
                 Rectangle {
                     id: alteredColorChosser
@@ -260,8 +257,8 @@ MuseScore {
                     }
                 }
 
-                Label {
-                    text: "Scale:"
+                NiceLabel {
+                    text: "Scale : "
                 }
                 Rectangle {
                     id: scaleColorChosser
@@ -278,8 +275,8 @@ MuseScore {
                     }
                 }
 
-                /*Label {
-                text: "Invalid:"
+                /*NiceLabel {
+                text: "Invalid : "
                 }
                 Rectangle {
                 id: errorColorChosser
@@ -296,8 +293,8 @@ MuseScore {
                 }
                 }*/
 
-                Label {
-                    text: "Text form"
+                NiceLabel {
+                    text: "Text form  : "
                 }
 
                 NiceComboBox {
