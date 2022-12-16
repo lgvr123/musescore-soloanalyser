@@ -4,6 +4,9 @@ The *Solo Analyser plugin* will highlight key notes in a Solo score.
 
 ![SoloAnalyser in action](/demo/soloanalyzer-demo.png)
 
+## What's new in 1.4.7 ?
+* [Bug] The plugin renders now correclty in MuseScore's darkmode.
+
 ## What's new in 1.4.6 ?
 * [Improvement] Don't analyse drum tracks
 * [Misc.] New plugin folder structure and port to MS4
