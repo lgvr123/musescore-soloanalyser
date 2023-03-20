@@ -25,11 +25,13 @@ import "core.js" as Core
 /*  - 1.4.2: LookAhead option + new UI layout
 /*  - 1.4.3: New plugin menu's structure
 /*  - 1.4.3: Qt.quit issue
-/*  - 1.4.3: IgnoreBrackettedChords option
-/*  - 1.4.4: Don't analyse drum staves
-/* 	- 1.4.5: Port to MuseScore 4.0
-/* 	- 1.4.5: New plugin folder structure
-/* 	- 1.4.6: Darkmode
+/*  - 1.4.3: (see Core.js log 1.2.3)
+/*  - 1.4.4: IgnoreBrackettedChords option
+/* 	- 1.4.4: Qt.quit issue
+/*  - 1.4.5: Don't analyse drum staves
+/* 	- 1.4.6: Port to MuseScore 4.0
+/* 	- 1.4.6: New plugin folder strucutre
+/* 	- 1.4.8: New option for not using chords preceeding the selection
 /**********************************************/
 
 MuseScore {
@@ -73,6 +75,7 @@ MuseScore {
         chkUseAboveSymbols.checked = settings.useAboveSymbols;
         chkUseBelowSymbols.checked = settings.useBelowSymbols;
         chkLookAhead.checked = settings.lookAhead;
+        chkLookBack.checked = settings.lookBack;
         chkIgnoreBrackettedChords.checked = settings.ignoreBrackettedChords;
 
     }
@@ -109,6 +112,7 @@ MuseScore {
         property var useBelowSymbols: Core.defUseBelowSymbols
         property var useAboveSymbols: Core.defUseAboveSymbols
         property var lookAhead: Core.defLookAhead
+        property var lookBack: Core.defLookBack
         property var ignoreBrackettedChords: Core.defIgnoreBrackettedChords
     }
 
@@ -330,6 +334,16 @@ MuseScore {
                         hoverEnabled: true
                         ToolTip.visible: hovered
                         ToolTip.text: qsTranslate("GenericUI", "Use the next chord if no previous chord has been found (e.g. anacrusis)")
+                    }
+                }
+
+                Flow {
+                    SmallCheckBox {
+                        id: chkLookBack
+                        text: qsTranslate("GenericUI", "Look back")
+                        hoverEnabled: true
+                        ToolTip.visible: hovered
+                        ToolTip.text: qsTranslate("GenericUI", "Use chords symbols preceeding the selection. Useful when the chord symbol to use is defined before the selection to analyse.")
                     }
                 }
 

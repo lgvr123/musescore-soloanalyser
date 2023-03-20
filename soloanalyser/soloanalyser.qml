@@ -30,12 +30,13 @@ import "core.js" as Core
 /*  - 1.4.5: Don't analyse drum staves
 /* 	- 1.4.6: Port to MuseScore 4.0
 /* 	- 1.4.6: New plugin folder strucutre
+/* 	- 1.4.8: New option for not using chords preceeding the selection
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins.Solo Analyser." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.4.6"
+    version: "1.4.8"
 
     readonly property var pluginName: "Analyse"
     id: mainWindow
@@ -70,6 +71,7 @@ MuseScore {
 		property var useBelowSymbols : Core.defUseBelowSymbols
 		property var useAboveSymbols : Core.defUseAboveSymbols
 		property var lookAhead : Core.defLookAhead
+		property var lookBack : Core.defLookBack
 		property var ignoreBrackettedChords : Core.defIgnoreBrackettedChords
     }
 

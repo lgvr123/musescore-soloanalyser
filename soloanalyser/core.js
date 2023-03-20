@@ -1,7 +1,7 @@
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser core plugin
-/* v1.2.5
+/* v1.2.6
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /* 	- 1.1.0: New alteredColor
@@ -16,7 +16,8 @@
 /*  - 1.2.3: Don't analyze slash notes
 /*  - 1.2.3: Reject invalid chord names or "%" chord names
 /*  - 1.2.4: Option to reject chord within brackets
-/*  - 1.2.5: Don't analyse drul staves
+/*  - 1.2.5: Don't analyse drum staves
+/*  - 1.2.6: New option for not using chords preceeding the selection
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -36,6 +37,7 @@ var defChordColor = "dodgerblue";
 var defUseAboveSymbols = true;
 var defUseBelowSymbols = true;
 var defLookAhead = true;
+var defLookBack = false;
 var defIgnoreBrackettedChords = true;
 
 
@@ -57,6 +59,7 @@ function doAnalyse() {
     var useAboveSymbols = (settings.useAboveSymbols!==undefined) ? settings.useAboveSymbols : true
     var useBelowSymbols = (settings.useBelowSymbols!==undefined) ? settings.useBelowSymbols : true
     var lookAhead = (settings.lookAhead!==undefined) ? settings.lookAhead : true
+    var lookBack = (settings.lookBack!==undefined) ? settings.lookBack : true
     var ignoreBrackettedChords = (settings.ignoreBrackettedChords!==undefined) ? settings.ignoreBrackettedChords : true
 
     // if configured for doing nothing (no colours, no names) we use the default values
@@ -87,8 +90,13 @@ function doAnalyse() {
     var byTrack = new Array(trackMax + 1); ;
 
     var cursor = curScore.newCursor();
-    // cursor.rewindToTick(segMin);
-    cursor.rewindToTick(0); // retrieving the chord from the beginning, so that if do the analyse in the middlle of a chord, we know that chord.
+    if(lookBack) {
+        // retrieving the chord from the beginning, so that if do the analyse in the middlle of a chord, we know that chord.
+        cursor.rewindToTick(0); 
+    } else {
+        // limit strictly the analyse at the selection
+        cursor.rewindToTick(segMin);
+    }
     var segment = cursor.segment;
 	var count=0;
     while (segment && ((segment.tick<=segMax) || (lookAhead && count===0))) {
