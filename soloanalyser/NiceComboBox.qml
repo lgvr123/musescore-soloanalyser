@@ -1,15 +1,20 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.2
 
+// v1.1.0: including textRole
+// v1.1.1: bugfix on textRole
+
 ComboBox {
     id: control
 
     model: []
+	
+	textRole: "text"
 
     delegate: ItemDelegate { // requiert QuickControls 2.2
         width: control.width
         contentItem: Text {
-            text: modelData.text
+            text: modelData[textRole]
             anchors.verticalCenter: parent.verticalCenter
         }
         highlighted: control.highlightedIndex === index
@@ -17,7 +22,7 @@ ComboBox {
 
     contentItem: Text {
 
-        text: (control.model[control.currentIndex])?control.model[control.currentIndex].text:"--"
+        text: (control.model[control.currentIndex])?control.model[control.currentIndex][textRole]:"--"
         anchors.verticalCenter: parent.verticalCenter
         leftPadding: 10
         rightPadding: 10

@@ -37,7 +37,7 @@ MuseScore {
     description: "Colors and names the notes based on their role if chords/harmonies."
     version: "1.4.6"
 
-    readonly property var pluginName: "Interactive"
+    readonly property var pluginName: qsTr("Interactive")
 
     pluginType: "dialog"
     width: mainRow.childrenRect.width + mainRow.anchors.leftMargin  + mainRow.anchors.rightMargin
@@ -125,7 +125,7 @@ MuseScore {
 
 
         GroupBox {
-            title: "Rendering options..."
+            title: qsTranslate("GenericUI", "Rendering options...")
                 //Layout.margins: 5
 				Layout.alignment: Qt.AlignTop | Qt.AlignLeft
 				GridLayout {
@@ -138,8 +138,8 @@ MuseScore {
                 Layout.fillWidth: true
 
                 NiceLabel {
-                    text: "Note coloring  : "
-                    //Tooltip.text : "Color all notes or only the ones defined by the chord";
+                    text: qsTranslate("GenericUI", "Note coloring  :")+" "
+                    //Tooltip.text : qsTranslate("GenericUI", "Color all notes or only the ones defined by the chord");
                     Layout.alignment: Qt.AlignLeft
                     Layout.fillHeight: false
                 }
@@ -149,21 +149,21 @@ MuseScore {
                     id: lstColorNote
                     model: [{
                             'value': "none",
-                            'text': "None - Don't color notes"
+                            'text': qsTranslate("GenericUI", "None - Don't color notes")
                         }, {
                             'value': "chord",
-                            'text': "Chord - Color the notes present in the chord"
+                            'text': qsTranslate("GenericUI", "Chord - Color the notes present in the chord")
                         }, {
                             'value': "all",
-                            'text': "Scale - Color the notes defined by the scale"
+                            'text': qsTranslate("GenericUI", "Scale - Color the notes defined by the scale")
                         }
                     ]
 
                 }
 
                 NiceLabel {
-                    text: "Note name  : "
-                    //Tooltip.text : "Name all notes or only the ones defined by the chord";
+                    text: qsTranslate("GenericUI", "Note name  :")+" "
+                    //Tooltip.text : qsTranslate("GenericUI", "Name all notes or only the ones defined by the chord");
                     Layout.alignment: Qt.AlignLeft
                     Layout.fillHeight: false
                 }
@@ -173,20 +173,20 @@ MuseScore {
                     id: lstNameNote
                     model: [{
                             'value': "none",
-                            'text': "None - Don't name notes"
+                            'text': qsTranslate("GenericUI", "None - Don't name notes")
                         }, {
                             'value': "chord",
-                            'text': "Chord - Name the notes present by the chord"
+                            'text': qsTranslate("GenericUI", "Chord - Name the notes present by the chord")
                         }, {
                             'value': "all",
-                            'text': "Scale - Name the notes defined by the scale"
+                            'text': qsTranslate("GenericUI", "Scale - Name the notes defined by the scale")
                         }
                     ]
 
                 }
 
                 NiceLabel {
-                    text: "Root : "
+                    text: qsTranslate("GenericUI", "Root :")+" "
                 }
                 Rectangle {
                     id: rootColorChosser
@@ -204,7 +204,7 @@ MuseScore {
                 }
 
                 NiceLabel {
-                    text: "Bass : "
+                    text: qsTranslate("GenericUI", "Bass :")+" "
                 }
                 Rectangle {
                     id: bassColorChosser
@@ -222,7 +222,7 @@ MuseScore {
                 }
 
                 NiceLabel {
-                    text: "Chord : "
+                    text: qsTranslate("GenericUI", "Chord :")+" "
                 }
                 Rectangle {
                     id: chordColorChosser
@@ -240,7 +240,7 @@ MuseScore {
                 }
 
                 NiceLabel {
-                    text: "Altered : "
+                    text: qsTranslate("GenericUI", "Altered :")+" "
                 }
                 Rectangle {
                     id: alteredColorChosser
@@ -258,7 +258,7 @@ MuseScore {
                 }
 
                 NiceLabel {
-                    text: "Scale : "
+                    text: qsTranslate("GenericUI", "Scale :")+" "
                 }
                 Rectangle {
                     id: scaleColorChosser
@@ -294,17 +294,17 @@ MuseScore {
                 }*/
 
                 NiceLabel {
-                    text: "Text form  : "
+                    text: qsTranslate("GenericUI", "Text form  :")+" "
                 }
 
                 NiceComboBox {
                     id: lstFormText
                     model: [{
                             value: "fingering",
-                            text: "As fingering"
+                            text: qsTranslate("GenericUI", "As fingering")
                         }, {
                             value: "lyrics",
-                            text: "As lyrics"
+                            text: qsTranslate("GenericUI", "As lyrics")
                         }
                     ]
 
@@ -313,7 +313,7 @@ MuseScore {
         }
 
         GroupBox {
-            title: "Analyze options..."
+            title: qsTranslate("GenericUI", "Analyze options...")
 				Layout.alignment: Qt.AlignTop | Qt.AlignRight
             GridLayout {
 
@@ -326,39 +326,39 @@ MuseScore {
                 Flow {
                     SmallCheckBox {
                         id: chkLookAhead
-                        text: "Look ahead"
+                        text: qsTranslate("GenericUI", "Look ahead")
                         hoverEnabled: true
                         ToolTip.visible: hovered
-                        ToolTip.text: "Use the next chord if no previous chord has been found (e.g. anacrusis)"
+                        ToolTip.text: qsTranslate("GenericUI", "Use the next chord if no previous chord has been found (e.g. anacrusis)")
                     }
                 }
 
                 Flow {
                     SmallCheckBox {
                         id: chkUseAboveSymbols
-                        text: "Allow using preceeding staves chord symbols"
+                        text: qsTranslate("GenericUI", "Allow using preceeding staves chord symbols")
                         hoverEnabled: true
                         ToolTip.visible: hovered
-                        ToolTip.text: "<p>If a staff has no chord symbols, use the chord symbols of the first <br/>preceeding staff having chord symbols.<br/><p><b><u>Remark</u></b>: When these options are used, SoloAnalyzer must be used <br/>preferably in <b>Concert pitch</b></p>"
+                        ToolTip.text: qsTranslate("GenericUI", "<p>If a staff has no chord symbols, use the chord symbols of the first <br/>preceeding staff having chord symbols.<br/><p><b><u>Remark</u></b>: When these options are used, SoloAnalyzer must be used <br/>preferably in <b>Concert pitch</b></p>")
                     }
                 }
 
                 Flow {
                     SmallCheckBox {
                         id: chkUseBelowSymbols
-                        text: "Allow using following staves chord symbols"
+                        text: qsTranslate("GenericUI", "Allow using following staves chord symbols")
                         hoverEnabled: true
                         ToolTip.visible: hovered
-                        ToolTip.text: "<p>If a staff has no chord symbols, use the chord symbols of the first <br/>following staff having chord symbols.<br/><p><b><u>Remark</u></b>: When these options are used, SoloAnalyzer must be used <br/>preferably in <b>Concert pitch</b></p>"
+                        ToolTip.text: qsTranslate("GenericUI", "<p>If a staff has no chord symbols, use the chord symbols of the first <br/>following staff having chord symbols.<br/><p><b><u>Remark</u></b>: When these options are used, SoloAnalyzer must be used <br/>preferably in <b>Concert pitch</b></p>")
                     }
                 }
                 Flow {
                     SmallCheckBox {
                         id: chkIgnoreBrackettedChords
-                        text: "Ignore chord names in parentheses"
+                        text: qsTranslate("GenericUI", "Ignore chord names in parentheses")
                         hoverEnabled: true
                         ToolTip.visible: hovered
-                        ToolTip.text: "Chord names surrounded by parentheses will be ignore for the analyse."
+                        ToolTip.text: qsTranslate("GenericUI", "Chord names surrounded by parentheses will be ignore for the analyse.")
                     }
                 }
 
@@ -381,7 +381,7 @@ MuseScore {
             Button {
                 implicitHeight: buttonBox.contentItem.height
 
-                text: "Reset"
+                text: qsTranslate("GenericUI", "Reset")
                 onClicked: {
                     settings.rootColor = Core.defRootColor;
                     settings.bassColor = Core.defBassColor;
@@ -415,7 +415,7 @@ MuseScore {
                 }
                 hoverEnabled: true
                 ToolTip.visible: hovered
-                ToolTip.text: "Reset to default values"
+                ToolTip.text: qsTranslate("GenericUI", "Reset to default values")
 
             }
 
@@ -431,11 +431,11 @@ MuseScore {
                 background.opacity: 0 // hide default white background
 
                 Button {
-                    text: "Apply"
+                    text: qsTranslate("GenericUI", "Apply")
                     DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
                 }
                 Button {
-                    text: "Clear"
+                    text: qsTranslate("GenericUI", "Clear")
                     id: btnClear
                     DialogButtonBox.buttonRole: DialogButtonBox.ResetRole
                 }
@@ -488,7 +488,7 @@ MuseScore {
 
     ColorDialog {
         id: colorDialog
-        title: "Please choose a color"
+        title: qsTranslate("GenericUI", "Please choose a color")
         property var target
         onAccepted: {
             console.log("You chose: " + colorDialog.color)

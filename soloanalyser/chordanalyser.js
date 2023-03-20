@@ -585,7 +585,14 @@ function getNote(roles, note) {
     });
     return (res.length === 0) ? undefined : res[0];
 }
-
+/**
+* @param keys           an array of all the notes belonging to the scale, represented as an integer ranging from [0,11]
+* @param chordnotes     an array of all the notes belonging explicitly to the chord from which this scale is deduced. 
+*   Each note is represented on the form <code>{note: [0,11], role: string}</code>
+* @param allnotes       an array of all the chromatic notes (ranging from 0 to 11) with their role on the form <code>{note: [0,11], role: string}</code>
+* @param outside        an array of all the notes that must be considered as "incongruity" in that the scale,  represented as an integer ranging from [0,11]
+*
+*/
 function scaleClass(keys, chordnotes, allnotes, outside) {
     this.keys = (!keys || (keys == null)) ? [] : keys; // keeping "==" on purpose
     this.chordnotes = (!chordnotes || (chordnotes == null)) ? [] : chordnotes; // keeping "==" on purpose
