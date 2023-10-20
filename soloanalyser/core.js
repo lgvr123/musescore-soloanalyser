@@ -18,11 +18,12 @@
 /*  - 1.2.4: Option to reject chord within brackets
 /*  - 1.2.5: Don't analyse drum staves
 /*  - 1.2.6: New option for not using chords preceeding the selection
+/*  - 1.2.7: new "unknown symbol" "✗"
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
 
-var degreefinder = /^((M|m|b|#)?[0-9]{1,2})?$/gm;
+var degreefinder = /^(((M|m|b|#)?[0-9]{1,2})|✗)?$/gm;
 
 var defColorNotes = "chord"; // none|chord|all
 var defNameNotes = "chord"; // none|chord|all

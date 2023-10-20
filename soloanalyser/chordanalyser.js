@@ -25,6 +25,7 @@
 /*  - 1.2.17: Invalid definition of Dim7
 /*  - 1.2.18: 7 as bass was labelled #13
 /*  - 1.2.19: Syntax corrections for Netbeans
+/*  - 1.2.20: Case-insensitive search for "Aug", "Sus2", ...
 /**********************************************/
 // -----------------------------------------------------------------------
 // --- Vesionning-----------------------------------------
@@ -32,7 +33,7 @@
 var default_names = ["1", "b9", "2", "#9", "b11", "4", "#11", "(5)", "m6", "M6", "m7", "M7"];
 
 function checkVersion(expected) {
-    var version = "1.2.19";
+    var version = "1.2.20";
 
     var aV = version.split('.').map(function (v) {
         return parseInt(v);
@@ -234,7 +235,7 @@ function scaleFromText(text, bass) {
 
     // Posibles additions
     // ..Aug..
-    if (text.includes("aug") || text.includes("+")) {
+    if (text.includes("aug",true) || text.includes("+")) {
         console.log("Starts with aug/+");
         // n3 = 3; // 1.2.16: un accord augmenté n'a pas nécessairement une tierce mineure
         n5 = 8;
@@ -243,7 +244,7 @@ function scaleFromText(text, bass) {
     }
 
     // ..sus2..
-    else if (text.includes("sus2")) {
+    else if (text.includes("sus2",true)) {
         console.log("Starts with sus2");
         n2 = 2;
         n3 = null; // pas de tierce explicite
@@ -253,7 +254,7 @@ function scaleFromText(text, bass) {
     }
 
     // ..sus4..
-    else if (text.includes("sus4")) {
+    else if (text.includes("sus4",true)) {
         console.log("Starts with sus4");
         n4 = 5;
         n3 = null; // pas de tierce explicite
@@ -264,7 +265,7 @@ function scaleFromText(text, bass) {
 
     // Compléments
     // ..7..
-    if (n7 === null && (text.includes("maj7") || text.includes("ma7") || text.startsWith("t7") || text.startsWith("t") || text.startsWith("^7") || text.startsWith("^"))) {
+    if (n7 === null && (text.includes("maj7",true) || text.includes("ma7",true) || text.startsWith("t7") || text.startsWith("t") || text.startsWith("^7") || text.startsWith("^"))) {
         console.log("Has M7");
         n7 = 11;
     } else 
@@ -499,8 +500,14 @@ function chordTextClass(str) {
         }
     };
 
-    this.includes = function (test) {
-        var pos = s.indexOf(test);
+    this.includes = function (test, insesitive) {
+        if (typeof insesitive === "undefined") insesitive=false;
+        var pos ;
+        if (insesitive) {
+            pos = s.toUpperCase().indexOf(test.toUpperCase());
+        } else {
+            pos = s.indexOf(test);
+        }
 
         if (pos >= 0) {
             s = s.substr(0, pos) + s.substr(pos + test.length);
