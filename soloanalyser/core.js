@@ -19,6 +19,7 @@
 /*  - 1.2.5: Don't analyse drum staves
 /*  - 1.2.6: New option for not using chords preceeding the selection
 /*  - 1.2.7: new "unknown symbol" "✗"
+/*  - 1.2.8: Starting Chord Symbol not used in the analyse when the track 0 has no segmennt at the tick
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -87,19 +88,39 @@ function doAnalyse() {
         trackMin = Math.min(trackMin, c.track);
         trackMax = Math.max(trackMax, c.track);
     }
-
+    
+    var allticks=chords
+        .map(function(c) {return c.parent.tick})
+        .sort(function(a,b) { return a-b})
+        .filter(function(item, pos, ary) {  // remove duplicates
+                return !pos || item != ary[pos - 1];
+            });
+            
+    console.log(JSON.stringify(allticks));
+    
     var byTrack = new Array(trackMax + 1); ;
 
     var cursor = curScore.newCursor();
+    
     if(lookBack) {
         // retrieving the chord from the beginning, so that if do the analyse in the middlle of a chord, we know that chord.
+        console.log("Starting at tick 0 (loopback mode)");
         cursor.rewindToTick(0); 
     } else {
         // limit strictly the analyse at the selection
-        cursor.rewindToTick(segMin);
+        console.log("Should be starting at tick "+segMin);
+        for(var t=trackMin;t<=trackMax;t++) {
+            // On cherche un track surlequel le segment qu'on essaye d'atteindre existe 
+            // (ce qui n'est pas nécessairement le cas si les tracks n'ont pas la même
+            // découpe ryhtmique).
+            cursor.track=trackMin;
+            cursor.rewindToTick(segMin);
+            if(cursor.segment.tick===segMin) break;
+        }
     }
-    var segment = cursor.segment;
+    var segment = cursor.segment;   
 	var count=0;
+    console.log("Really starting at tick "+segment.tick);  // <-- bug : on ne démarre pas de là où on le demande
     while (segment && ((segment.tick<=segMax) || (lookAhead && count===0))) {
 
         var annotations = segment.annotations;
@@ -108,8 +129,10 @@ function doAnalyse() {
             for (var j = 0; j < annotations.length; j++) {
                 var ann = annotations[j];
                 //console.log("  (" + i + ") " + ann.userName() + " / " + ann.text + " / " + ann.harmonyType);
-                if (ann.type !== Element.HARMONY || ann.harmonyType!== HarmonyType.STANDARD ) // Not using the Roman and Nashvill Harmony types 
+                if (ann.type !== Element.HARMONY || ann.harmonyType!== HarmonyType.STANDARD ) { // Not using the Roman and Nashvill Harmony types 
+					console.log(segment.tick+": rejecting non relevant annotation: "+ann.userName());
                     continue;
+                }
 
 				if (ignoreBrackettedChords && (ann.text.search(/^\(.+\)$/g)!==-1)) {
 					console.log(segment.tick+": rejecting chord name with parentheses: "+ann.text);
@@ -117,8 +140,10 @@ function doAnalyse() {
 				}
 
 
-                if (/*(ann.track < trackMin) ||*/(ann.track > trackMax)) // j'analyse aussi ce qui a en amont
+                if (/*(ann.track < trackMin) ||*/(ann.track > trackMax)) { // j'analyse aussi ce qui a en amont
+                    console.log(segment.tick+": rejecting annotation on out of range track");
                     continue;
+                }
 					
 				count++;
 
@@ -417,10 +442,10 @@ function getSelection() {
     var chords = SelHelper.getChordsRestsFromCursor();
 
     if (chords && (chords.length > 0)) {
-        console.log("CHORDS FOUND FROM CURSOR");
+        console.log("CHORDRESTS FOUND FROM CURSOR");
     } else {
         chords = SelHelper.getChordsRestsFromScore();
-        console.log("CHORDS FOUND FROM ENTIRE SCORE");
+        console.log("CHORDRESTS FOUND FROM ENTIRE SCORE");
     }
 
     if (!chords || (chords.length == 0))

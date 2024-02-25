@@ -26,6 +26,8 @@
 /*  - 1.2.18: 7 as bass was labelled #13
 /*  - 1.2.19: Syntax corrections for Netbeans
 /*  - 1.2.20: Case-insensitive search for "Aug", "Sus2", ...
+/*  - 1.2.21: Accords "Alt"
+/*  - 1.2.22: b5 and #5 chords wrongly analysed
 /**********************************************/
 // -----------------------------------------------------------------------
 // --- Vesionning-----------------------------------------
@@ -33,7 +35,7 @@
 var default_names = ["1", "b9", "2", "#9", "b11", "4", "#11", "(5)", "m6", "M6", "m7", "M7"];
 
 function checkVersion(expected) {
-    var version = "1.2.20";
+    var version = "1.2.22";
 
     var aV = version.split('.').map(function (v) {
         return parseInt(v);
@@ -234,18 +236,26 @@ function scaleFromText(text, bass) {
     }
 
     // Posibles additions
-    // ..Aug..
-    if (text.includes("aug",true) || text.includes("+")) {
-        console.log("Starts with aug/+");
+    // ..Aug|+|#5..
+    if (text.includes("aug",true) || text.includes("+") || text.includes("#5")) {
+        console.log("Contains  aug/+/b5");
         // n3 = 3; // 1.2.16: un accord augmenté n'a pas nécessairement une tierce mineure
         n5 = 8;
+        n5role = "#5";
         //def6 = 9; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
         //def7 = 11; // Je force une 7ème par défaut. Qui sera peut-être écrasée après.
     }
 
+    // ..b5..
+    else if (text.includes("b5",true)) {
+        console.log("Contains b5");
+        n5 = 6;
+        n5role = "b5";
+    }
+
     // ..sus2..
     else if (text.includes("sus2",true)) {
-        console.log("Starts with sus2");
+        console.log("Contains sus2");
         n2 = 2;
         n3 = null; // pas de tierce explicite
         def3 = 4; //pourrait être 3 ou 4
@@ -254,13 +264,26 @@ function scaleFromText(text, bass) {
     }
 
     // ..sus4..
-    else if (text.includes("sus4",true)) {
-        console.log("Starts with sus4");
+    else if (text.includes("sus4",true) || text.includes("sus")) {
+        console.log("Contains sus4 or sus");
         n4 = 5;
         n3 = null; // pas de tierce explicite
         def3 = 4; //pourrait être 3 ou 4
         //n5 = 7;
         //def6 = 9; // Je force une 6ème par défaut. Qui sera peut-être écrasée après.
+    }
+
+    // ..alt..
+    else if (text.includes("alt",true)) {
+        console.log("Contains alt or sus");
+        // 1/2, 1, 1/2, 1, 1, 1
+        n2 = 1; // b9
+        n3 = 3; // b3 i.e. #9
+        n4 = 4; // 3 i.e. b11
+        n5 = 6; // b5
+        n5role = "b5";
+        n6 = 8; // b13
+        n7 = 10; // b7
     }
 
     // Compléments
@@ -288,14 +311,16 @@ function scaleFromText(text, bass) {
     }
 
     // ..5..
-    if (text.includes("b5")) {
-        console.log("Has b5");
-        n5 = 6;
-        n5role = "b5";
-    } else if (text.includes("#5")) {
-        console.log("Has #5");
-        n5 = 8;
-        n5role = "#5";
+    if (n5 === null) {
+        if (text.includes("b5")) {
+            console.log("Has b5");
+            n5 = 6;
+            n5role = "b5";
+        } else if (text.includes("#5")) {
+            console.log("Has #5");
+            n5 = 8;
+            n5role = "#5";
+        }
     }
 
     if (n5 !== null) {
@@ -388,9 +413,13 @@ function scaleFromText(text, bass) {
     }
 
     // ..6/13..
-    if (text.includes("6")) {
-        console.log("Has 6");
-        n6 = 9;
+    if (n6===null) {
+        if (text.includes("6")) {
+            console.log("Has 6");
+            n6 = 9;
+        }
+    }
+    if (n6!==null) {
         pushToKeys(keys, n6, "(n)6"); // "So in the case of min6 chords always always always make the 6th a major 6th."
         pushToNotes(chordnotes, n6, "6");
         def6 = null;

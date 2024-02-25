@@ -31,6 +31,9 @@ import "core.js" as Core
 /* 	- 1.4.6: Port to MuseScore 4.0
 /* 	- 1.4.6: New plugin folder strucutre
 /* 	- 1.4.8: New option for not using chords preceeding the selection
+/*  - 1.4.8: (see Core.js log 1.2.8)
+/*  - 1.4.8: (see ChordAnalyser.js log 1.2.22)
+
 /**********************************************/
 
 MuseScore {

@@ -32,12 +32,15 @@ import "core.js" as Core
 /* 	- 1.4.6: Port to MuseScore 4.0
 /* 	- 1.4.6: New plugin folder strucutre
 /* 	- 1.4.8: New option for not using chords preceeding the selection
+/* 	- 1.4.9: loopBack option not correctly saved to the settings
+/*  - 1.4.10: (see Core.js log 1.2.8)
+/*  - 1.4.10: (see ChordAnalyser.js log 1.2.22)
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins.Solo Analyser." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.4.6"
+    version: "1.4.10"
 
     readonly property var pluginName: qsTr("Interactive")
 
@@ -470,6 +473,7 @@ MuseScore {
                     settings.useBelowSymbols = chkUseBelowSymbols.checked;
                     settings.useAboveSymbols = chkUseAboveSymbols.checked;
                     settings.lookAhead = chkLookAhead.checked;
+                    settings.lookBack = chkLookBack.checked;
                     settings.ignoreBrackettedChords = chkIgnoreBrackettedChords.checked;
 
                     // save values

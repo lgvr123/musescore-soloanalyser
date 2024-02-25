@@ -297,7 +297,7 @@ function getChordsRestsFromCursor() {
         }
         // cursor.next();
         // segment = cursor.segment;
-        segment = segment.next; // 18/6/22 : looping thru all segments, and only defined at the curso level (which is bound to track)
+        segment = segment.next; // 18/6/22 : looping thru all segments, and only defined at the cursor level (which is bound to track)
     }
 
     return chords;
