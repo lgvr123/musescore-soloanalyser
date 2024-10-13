@@ -28,6 +28,9 @@
 /*  - 1.2.20: Case-insensitive search for "Aug", "Sus2", ...
 /*  - 1.2.21: Accords "Alt"
 /*  - 1.2.22: b5 and #5 chords wrongly analysed
+/*  - 1.2.23: Ajout des 7th, 9th, 11th dans les accords 11th et 13th
+/*  - 1.2.23: Ajout des accords 10th
+/*  - 1.2.24: bug: mauvaise reconnaissance des accords ##
 /**********************************************/
 // -----------------------------------------------------------------------
 // --- Vesionning-----------------------------------------
@@ -35,7 +38,7 @@
 var default_names = ["1", "b9", "2", "#9", "b11", "4", "#11", "(5)", "m6", "M6", "m7", "M7"];
 
 function checkVersion(expected) {
-    var version = "1.2.22";
+    var version = "1.2.24";
 
     var aV = version.split('.').map(function (v) {
         return parseInt(v);
@@ -59,9 +62,16 @@ function chordFromText(source) {
     //var text = source.replace(/(\(|\))/g, '');
     var text = source.replace(/(^\s*\(\s*|\s*\)\s*$)/g, ''); // on vire les "(" et ")" de début et fin
 
+    console.log("chordFromText: source: "+source);
+    console.log("chordFromText: cleaned: "+text);
+
     var rootbass = text.split("/");
     text = rootbass[0];
     var bass = (rootbass.length > 1) ? rootbass[1] : null;
+
+    console.log("chordFromText: /w bass : "+text);
+    console.log("chordFromText: bass : "+text);
+
 
     // Root
     var rootacc = getRootAccidental(text);
@@ -98,8 +108,14 @@ function chordFromText(source) {
 function getRootAccidental(text) {
     var root = text.slice(0, 1).toUpperCase();
     var alt = text.slice(1, 2);
+    console.log("Searching root and accidental in : "+text);
+    console.log("Root: "+root);
+    console.log("Alteration text: "+alt);
     if ("bb" === text.slice(1, 3)) {
         alt = 'FLAT2';
+        text = text.substr(3);
+    } else if ("##" === text.slice(1, 3)) {
+        alt = 'SHARP2';
         text = text.substr(3);
     } else if ("x" === alt) {
         alt = 'SHARP2';
@@ -114,6 +130,8 @@ function getRootAccidental(text) {
         alt = 'NONE';
         text = text.substr(1);
     }
+
+    console.log("Searching for tp for root="+root+", accidental="+alt);
 
     var ftpcs = NoteHelper.tpcs.filter(function (e) {
         return ((e.raw === root) && (e.accidental === alt));
@@ -306,6 +324,9 @@ function scaleFromText(text, bass) {
     if (n3 !== null) {
         pushToKeys(keys, n3, "n3");
         pushToNotes(chordnotes, n3, "3");
+    } else if (text.includes("10")) {
+        pushToKeys(keys, 4, "10");
+        pushToNotes(chordnotes, 4, "10");
     } else if (def3 !== null) {
         pushToKeys(keys, def3, "def3");
     }
@@ -372,8 +393,9 @@ function scaleFromText(text, bass) {
     }
 
     // Adding an explicit 7 if a 9 is present
-    if ((n9 !== null) && (n7 === null) && (def7 !== null)) {
+    //if ((n9 !== null) && (n7 === null) && (def7 !== null)) {
         // n7 = def7;
+    if ((n9 !== null) && (n7 === null)) {
         n7 = 10;
     }
 
@@ -411,6 +433,21 @@ function scaleFromText(text, bass) {
         if (getNote(chordnotes, def4) === undefined)
             pushToNotes(allnotes, def4, "4");
     }
+    
+    // Adding an explicit 7 and 9 if a 11 is present
+    console.log("---Adding 7 in 11 chord :"+n11+"/"+n7+"/"+def7);
+    if ((n11 !== null) && (n7 === null)) {
+        console.log("...Ajouté");
+        n7 = 10;
+    }
+
+    if ((n11 !== null) && (n9 === null)) {
+        n9 = 2;
+        pushToKeys(keys, n9, "9");
+        pushToNotes(chordnotes, n9, "9");
+    }
+
+
 
     // ..6/13..
     if (n6===null) {
@@ -451,12 +488,33 @@ function scaleFromText(text, bass) {
         if (getNote(chordnotes, def6) === undefined)
             pushToNotes(allnotes, def6, "6");
     }
+    
+    // Adding an explicit 7, 9, 11 if a 13 is present
+    if ((n13 !== null) && (n7 === null)) {
+        n7 = 10;
+    }
+
+    if ((n13 !== null) && (n9 === null)) {
+        n9 = 2;
+        pushToKeys(keys, n9, "9");
+        pushToNotes(chordnotes, n9, "9");
+    }
+
+    if ((n13 !== null) && (n11 === null)) {
+        n11 = 5;
+        pushToKeys(keys, n11, "(11)");
+        pushToNotes(chordnotes, n11, "11");
+    }
+
+    
 
     //..7..
     if (n7 !== null) {
+        console.log("found 7 as explicit ("+n7+")");
         pushToKeys(keys, n7, "n7");
         pushToNotes(chordnotes, n7, "7");
     } else if ((at = [10, 11].indexOf(bass)) >= 0) {
+        console.log("found 7 as bass ("+bass+")");
         n7 = bass;
         pushToKeys(keys, bass, "bass as 7");
         pushToNotes(chordnotes, bass, ["m", "M"][at] + "7");

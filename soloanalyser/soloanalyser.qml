@@ -33,13 +33,14 @@ import "core.js" as Core
 /* 	- 1.4.8: New option for not using chords preceeding the selection
 /*  - 1.4.8: (see Core.js log 1.2.8)
 /*  - 1.4.8: (see ChordAnalyser.js log 1.2.22)
+/*  - 1.4.9: (see ChordAnalyser.js log 1.2.23+24)
 
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins.Solo Analyser." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.4.8"
+    version: "1.4.9"
 
     readonly property var pluginName: "Analyse"
     id: mainWindow

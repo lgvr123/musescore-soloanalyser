@@ -19,7 +19,8 @@
 /*  - 1.2.5: Don't analyse drum staves
 /*  - 1.2.6: New option for not using chords preceeding the selection
 /*  - 1.2.7: new "unknown symbol" "✗"
-/*  - 1.2.8: Starting Chord Symbol not used in the analyse when the track 0 has no segmennt at the tick
+/*  - 1.2.8: A Chord Symbol is not used in the analyse when the track 0 has nothing defined at that segment's tick.
+/*  - 1.2.9: Better treatment of lack of chord symbols and uparsable chord symbols (e.g. chord symbols for files just imported from MusicXML does not work unless the chords are manually edited).
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -129,11 +130,21 @@ function doAnalyse() {
             for (var j = 0; j < annotations.length; j++) {
                 var ann = annotations[j];
                 //console.log("  (" + i + ") " + ann.userName() + " / " + ann.text + " / " + ann.harmonyType);
-                if (ann.type !== Element.HARMONY || ann.harmonyType!== HarmonyType.STANDARD ) { // Not using the Roman and Nashvill Harmony types 
+                if (
+                    (ann.type !== Element.HARMONY || ann.harmonyType!== HarmonyType.STANDARD ) // Not using the Roman and Nashvill Harmony types 
+                    && (ann.type !==Element.FRET_DIAGRAM) // Not a Fretboard diagram (that includes chord name)
+                    ) { 
 					console.log(segment.tick+": rejecting non relevant annotation: "+ann.userName());
                     continue;
                 }
+                
+                debugO("elements: ",ann.elements);
 
+				if (!ann.text) {
+					console.log(segment.tick+": rejecting relevant annotation without text: "+ann.userName());
+                    continue;
+                }
+                
 				if (ignoreBrackettedChords && (ann.text.search(/^\(.+\)$/g)!==-1)) {
 					console.log(segment.tick+": rejecting chord name with parentheses: "+ann.text);
 					continue;
@@ -144,22 +155,27 @@ function doAnalyse() {
                     console.log(segment.tick+": rejecting annotation on out of range track");
                     continue;
                 }
-					
-				count++;
-
-                if (byTrack[ann.track] === undefined)
-                    byTrack[ann.track] = [];
+                
+                console.log(segment.tick+": going forward with analyse of "+ann.text);
+                
 
 				var chord = ChordHelper.chordFromText(ann.text);
 				if (chord !== null) {
 				console.log(segment.tick+": adding "+ann.text+" to track "+ann.track);
 				    // If the chord is correctly analyzed, add it (to avoid invalid chord names, or "%" chord names)
+
+                    if (byTrack[ann.track] === undefined)
+                        byTrack[ann.track] = [];
+
+                    count++;
+
 				    byTrack[ann.track].push({
 				        tick: segment.tick,
 				        chord: chord
 				    });
 				} else {
-					console.log(segment.tick+": rejecting invalid chord name: "+ann.text);
+					console.log(segment.tick+": rejecting invalid chord name: \""+ann.text+"\"");
+                    //debugO("Empty annotation at "+segment.tick,ann); // fait planter le système quand on lit des accords chargés depuis MusicXML:-(
 				}
             }
         }
@@ -220,6 +236,8 @@ function doAnalyse() {
         cursor.rewindToTick(segMin);
         var segment = cursor.segment;
         var values = (byTrack[track] !== undefined) ? byTrack[track] : [];
+        debugO("Chords at track "+track,values);
+        console.log("Chords found at track=+"+track+": "+values.length);
         var curChord = null;
 		var check=null;
         var step = lookAhead?0:-1; // if we lookAhead, we start from the first chord, even if it is further that start segment.
@@ -233,7 +251,7 @@ function doAnalyse() {
                 // curChord = ChordHelper.chordFromText(values[step].text);
 			}
 			
-			if(step>=0) {
+			if((step>=0) && (step<=(values.length-1))) {
                 curChord = values[step].chord;
                 check = values[step].tick;
 			}
@@ -454,3 +472,79 @@ function getSelection() {
     return chords;
 
 }
+
+    function debugO(label, element, excludes, isinclude) {
+
+        if (typeof isinclude === 'undefined') {
+            isinclude = false; // by default the exclude is an exclude list.otherwise it is an include
+        }
+        if (!Array.isArray(excludes)) {
+            excludes = [];
+        }
+
+        try {
+            if (typeof element === 'undefined') {
+                console.log(label + ": undefined");
+                return;
+            } 
+        } catch (error) {
+            console.log("!! "+label+": failed to check for undefined");
+            console.log(error);
+            return;
+        }
+        
+        try {
+            if (element === null) {
+                console.log(label + ": null");
+                return;
+            } 
+        } catch (error) {
+            console.log("!! "+label+": failed to check for null");
+            console.log(error);
+            return;
+        }
+        
+        
+        try {
+            if (Array.isArray(element)) {
+                for (var i = 0; i < element.length; i++) {
+                    debugO(label + "-" + i, element[i], excludes, isinclude);
+                }
+                return;
+            } 
+        } catch (error) {
+            console.log("!! "+label+": failed to check for isArray");
+            console.log(error);
+            return;
+        }
+        
+        
+        try {
+            if (typeof element === 'object') {
+
+                var kys = Object.keys(element);
+                for (var i = 0; i < kys.length; i++) {
+                    if ((excludes.indexOf(kys[i]) == -1) ^ isinclude) {
+                        debugO(label + ": " + kys[i], element[kys[i]], excludes, isinclude);
+                    }
+                }
+                return;
+            } 
+        } catch (error) {
+            console.log("!! "+label+": failed to check for undefined");
+            console.log(error);
+            return;
+        }
+        
+        
+        try {
+            console.log(label + ": " + element);
+            return;
+        } catch (error) {
+            console.log("!! "+label+": failed to check for undefined");
+            console.log(error);
+            return;
+        }
+        
+        
+    }
