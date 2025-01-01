@@ -117,10 +117,12 @@ MuseScore {
         property var nameNotes: Core.defNameNotes
         property var textType: Core.defTextType
         
-        /*property var useAboveSymbols: Core.defUseAboveSymbols
-        property var lookAhead: Core.defLookAhead
-        property var lookBack: Core.defLookBack
-        property var ignoreBrackettedChords: Core.defIgnoreBrackettedChords
+        property alias useBelowSymbols: chkUseBelowSymbols.checked
+        property alias useAboveSymbols: chkUseAboveSymbols.checked
+        property alias lookAhead: chkLookAhead.checked
+        property alias lookBack: chkLookBack.checked
+        property alias ignoreBrackettedChords: chkIgnoreBrackettedChords.checked
+        
     }
 
     GridLayout {
