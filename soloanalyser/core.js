@@ -1,7 +1,7 @@
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser core plugin
-/* v1.2.6
+/* v1.2.11
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /* 	- 1.1.0: New alteredColor
@@ -21,6 +21,8 @@
 /*  - 1.2.7: new "unknown symbol" "✗"
 /*  - 1.2.8: A Chord Symbol is not used in the analyse when the track 0 has nothing defined at that segment's tick.
 /*  - 1.2.9: Better treatment of lack of chord symbols and uparsable chord symbols (e.g. chord symbols for files just imported from MusicXML does not work unless the chords are manually edited).
+/*  - 1.2.10: Bug: Chord Symbol attached to Fret Diagrams were not used
+/*  - 1.2.11: Bug: Wrong usage the lookAhead stored setting
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -59,11 +61,13 @@ function doAnalyse() {
     var chordColor = settings.chordColor;
     var alteredColor = (settings.alteredColor) ? settings.alteredColor : defAlteredColor
     var textType = (settings.textType) ? settings.textType : defTextType
-    var useAboveSymbols = (settings.useAboveSymbols!==undefined) ? settings.useAboveSymbols : true
-    var useBelowSymbols = (settings.useBelowSymbols!==undefined) ? settings.useBelowSymbols : true
-    var lookAhead = (settings.lookAhead!==undefined) ? settings.lookAhead : true
-    var lookBack = (settings.lookBack!==undefined) ? settings.lookBack : true
-    var ignoreBrackettedChords = (settings.ignoreBrackettedChords!==undefined) ? settings.ignoreBrackettedChords : true
+    var useAboveSymbols = (settings.useAboveSymbols!==undefined) ? cbool(settings.useAboveSymbols) : defUseAboveSymbols
+    var useBelowSymbols = (settings.useBelowSymbols!==undefined) ? cbool(settings.useBelowSymbols) : defUseBelowSymbols
+    var lookAhead = (settings.lookAhead!==undefined) ? cbool(settings.lookAhead) : defLookAhead
+    var lookBack = (settings.lookBack!==undefined) ? cbool(settings.lookBack) : defLookBack
+    var ignoreBrackettedChords = (settings.ignoreBrackettedChords!==undefined) ? cbool(settings.ignoreBrackettedChords) : defIgnoreBrackettedChords
+    
+    console.log("Look Ahead -- settings: "+((settings.lookAhead!==undefined) ? settings.lookAhead : "undefined")+", using: "+lookAhead);
 
     // if configured for doing nothing (no colours, no names) we use the default values
     if (colorNotes == "none" && nameNotes == "none") {
@@ -130,60 +134,52 @@ function doAnalyse() {
             for (var j = 0; j < annotations.length; j++) {
                 var ann = annotations[j];
                 //console.log("  (" + i + ") " + ann.userName() + " / " + ann.text + " / " + ann.harmonyType);
-                if (
-                    (ann.type !== Element.HARMONY || ann.harmonyType!== HarmonyType.STANDARD ) // Not using the Roman and Nashvill Harmony types 
-                    && (ann.type !==Element.FRET_DIAGRAM) // Not a Fretboard diagram (that includes chord name)
-                    ) { 
+                if (ann.type !== Element.HARMONY || ann.harmonyType!== HarmonyType.STANDARD ) { // Not using the Roman and Nashvill Harmony types 
 					console.log(segment.tick+": rejecting non relevant annotation: "+ann.userName());
                     continue;
                 }
-                
-                debugO("elements: ",ann.elements);
-
-				if (!ann.text) {
-					console.log(segment.tick+": rejecting relevant annotation without text: "+ann.userName());
-                    continue;
-                }
-                
-				if (ignoreBrackettedChords && (ann.text.search(/^\(.+\)$/g)!==-1)) {
-					console.log(segment.tick+": rejecting chord name with parentheses: "+ann.text);
-					continue;
-				}
-
-
-                if (/*(ann.track < trackMin) ||*/(ann.track > trackMax)) { // j'analyse aussi ce qui a en amont
-                    console.log(segment.tick+": rejecting annotation on out of range track");
-                    continue;
-                }
-                
-                console.log(segment.tick+": going forward with analyse of "+ann.text);
-                
-
-				var chord = ChordHelper.chordFromText(ann.text);
-				if (chord !== null) {
-				console.log(segment.tick+": adding "+ann.text+" to track "+ann.track);
-				    // If the chord is correctly analyzed, add it (to avoid invalid chord names, or "%" chord names)
-
-                    if (byTrack[ann.track] === undefined)
-                        byTrack[ann.track] = [];
-
-                    count++;
-
-				    byTrack[ann.track].push({
-				        tick: segment.tick,
-				        chord: chord
-				    });
-				} else {
-					console.log(segment.tick+": rejecting invalid chord name: \""+ann.text+"\"");
-                    //debugO("Empty annotation at "+segment.tick,ann); // fait planter le système quand on lit des accords chargés depuis MusicXML:-(
-				}
+                if (!validateAnnotation(ann, segment, trackMax, byTrack, ignoreBrackettedChords, count)) continue;
             }
         }
 
 
         segment = segment.next;
     }
-
+    
+    // Les noms d'accords repris dans les FRET_DIAGRAM  ne sont pas trouvables par le mécanisme
+    // ci-dessus, mais uniquement s'ils sont sélectionnés.
+    // On étudie donc ce qui est sélectionné pour les retrouver.
+    var sel = curScore.selection.elements;
+    for (var i = 0; i < sel.length; i++) {
+        var el = sel[i];
+        //console.log(sel[i].userName());
+        if (el.type === Element.HARMONY && el.harmonyType === HarmonyType.STANDARD && el.parent.type === Element.FRET_DIAGRAM) {
+            var seg = el;
+            while (seg != null && seg.type != Element.SEGMENT) {
+                console.log("  > " + seg.userName());
+                seg = seg.parent;
+            }
+            console.log("!! " + seg.tick + "/" + el.track);
+            console.log("!! " + el.text);
+            if (!validateAnnotation(el, seg, trackMax, byTrack, ignoreBrackettedChords, count)) continue;;
+        }
+    }
+    
+    // tri
+    for (var track = 0; track <= trackMax; track++) {
+        var byt=byTrack[track];
+        if(byt===undefined) continue;
+        byTrack[track]=byt.sort(function(a,b) { return a.tick-b.tick; });
+        console.log(track + ": " + ((byTrack[track] !== undefined) ? byTrack[track].length : 0));
+        if (byTrack[track] !== undefined) {
+            for (var x = 0; x < byTrack[track].length; x++) {
+				var name=(byTrack[track][x].chord!==null)?byTrack[track][x].chord.name:"~undefined chord~";
+                console.log("   " + byTrack[track][x].tick + ": " + name);
+            }
+        }
+    }
+    
+    
     // consolidation de haut en bas
 	if (useAboveSymbols) {
 	    for (var track = 1; track <= trackMax; track++) { // !! démarre à 1
@@ -236,11 +232,11 @@ function doAnalyse() {
         cursor.rewindToTick(segMin);
         var segment = cursor.segment;
         var values = (byTrack[track] !== undefined) ? byTrack[track] : [];
-        debugO("Chords at track "+track,values);
-        console.log("Chords found at track=+"+track+": "+values.length);
+        //debugO("Chords at track "+track,values);
+        console.log("Chords found at track="+track+": "+values.length);
         var curChord = null;
 		var check=null;
-        var step = lookAhead?0:-1; // if we lookAhead, we start from the first chord, even if it is further that start segment.
+        var step = (lookAhead)?0:-1; // if we lookAhead, we start from the first chord, even if it is further that start segment.
 		console.log("lookAhead = "+lookAhead+", donc on commence à l'étape "+step);
         while (segment && segment.tick<=segMax) {
             // getting the right chord diagram
@@ -352,6 +348,54 @@ function doAnalyse() {
     curScore.endCmd();
 
 }
+
+
+function validateAnnotation(ann, segment, trackMax, byTrack, ignoreBrackettedChords, count) {
+    debugO("elements: ",ann.elements);
+
+    if (!ann.text) {
+        console.log(segment.tick+": rejecting relevant annotation without text: "+ann.userName());
+        return false;
+    }
+    
+    if (ignoreBrackettedChords && (ann.text.search(/^\(.+\)$/g)!==-1)) {
+        console.log(segment.tick+": rejecting chord name with parentheses: "+ann.text);
+        return false;
+    }
+
+
+    if (/*(ann.track < trackMin) ||*/(ann.track > trackMax)) { // j'analyse aussi ce qui a en amont
+        console.log(segment.tick+": rejecting annotation on out of range track");
+        return false;
+    }
+    
+    console.log(segment.tick+": going forward with analyse of "+ann.text);
+    
+
+    var chord = ChordHelper.chordFromText(ann.text);
+    if (chord !== null) {
+    console.log(segment.tick+": adding "+ann.text+" to track "+ann.track);
+        // If the chord is correctly analyzed, add it (to avoid invalid chord names, or "%" chord names)
+
+        if (byTrack[ann.track] === undefined)
+            byTrack[ann.track] = [];
+
+        count++;
+
+        byTrack[ann.track].push({
+            tick: segment.tick,
+            chord: chord
+        });
+    } else {
+        console.log(segment.tick+": rejecting invalid chord name: \""+ann.text+"\"");
+        //debugO("Empty annotation at "+segment.tick,ann); // fait planter le système quand on lit des accords chargés depuis MusicXML:-(
+    }
+    
+    return true;
+
+    
+}
+
 function clearAnalyse() {
 
     // Selection
@@ -548,3 +592,10 @@ function getSelection() {
         
         
     }
+ 
+/** Cette fonction retourne un booléen à partir d'une string ou d'un booléen */ 
+function cbool(value) {
+  var res=(value===true) || value==="true";
+  //console.log("("+(typeof value)+") "+value+" => "+res)
+  return res;
+}    

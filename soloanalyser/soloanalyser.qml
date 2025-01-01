@@ -34,13 +34,13 @@ import "core.js" as Core
 /*  - 1.4.8: (see Core.js log 1.2.8)
 /*  - 1.4.8: (see ChordAnalyser.js log 1.2.22)
 /*  - 1.4.9: (see ChordAnalyser.js log 1.2.23+24)
-
+/*  - 1.4.10: Bug: Wrong usage the lookAhead stored setting
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins.Solo Analyser." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.4.9"
+    version: "1.4.10"
 
     readonly property var pluginName: "Analyse"
     id: mainWindow
@@ -63,20 +63,20 @@ MuseScore {
         id: settings
         category: "SoloAnalyser"
         // in options
-        property var rootColor: Core.defRootColor
-        property var bassColor: Core.defBassColor
-        property var chordColor: Core.defChordColor
-        property var scaleColor: Core.defScaleColor
-        property var errorColor: Core.defErrorColor
-        property var alteredColor: Core.defAlteredColor
-        property var colorNotes: Core.defColorNotes
-        property var nameNotes: Core.defNameNotes
-		property var textType : Core.defTextType
-		property var useBelowSymbols : Core.defUseBelowSymbols
-		property var useAboveSymbols : Core.defUseAboveSymbols
-		property var lookAhead : Core.defLookAhead
-		property var lookBack : Core.defLookBack
-		property var ignoreBrackettedChords : Core.defIgnoreBrackettedChords
+        property var rootColor
+        property var bassColor
+        property var chordColor
+        property var scaleColor
+        property var errorColor
+        property var alteredColor
+        property var colorNotes
+        property var nameNotes
+		property var textType
+		property var useBelowSymbols
+		property var useAboveSymbols
+		property var lookAhead
+		property var lookBack
+		property var ignoreBrackettedChords
     }
 
 }

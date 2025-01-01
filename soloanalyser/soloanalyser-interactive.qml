@@ -36,12 +36,13 @@ import "core.js" as Core
 /*  - 1.4.10: (see Core.js log 1.2.8)
 /*  - 1.4.10: (see ChordAnalyser.js log 1.2.22)
 /*  - 1.4.11: (see ChordAnalyser.js log 1.2.23+24)
+/*  - 1.4.12: Better settings management
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins.Solo Analyser." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.4.11"
+    version: "1.4.12"
 
     readonly property var pluginName: qsTr("Interactive")
 
@@ -64,12 +65,14 @@ MuseScore {
         // AUTOMATIC
 
         // 2) push to screen
+        
+        console.log(settings.lookAhead+" -- "+typeof settings.lookAhead + " -- "+(settings.lookAhead=="true"));
 
         select(lstColorNote, settings.colorNotes);
         select(lstNameNote, settings.nameNotes);
         select(lstFormText, settings.textType);
 
-        rootColorChosser.color = settings.rootColor;
+/*        rootColorChosser.color = settings.rootColor;
         bassColorChosser.color = settings.bassColor;
         chordColorChosser.color = settings.chordColor;
         scaleColorChosser.color = settings.scaleColor;
@@ -80,7 +83,7 @@ MuseScore {
         chkUseBelowSymbols.checked = settings.useBelowSymbols;
         chkLookAhead.checked = settings.lookAhead;
         chkLookBack.checked = settings.lookBack;
-        chkIgnoreBrackettedChords.checked = settings.ignoreBrackettedChords;
+        chkIgnoreBrackettedChords.checked = settings.ignoreBrackettedChords;*/
 
     }
 
@@ -104,17 +107,17 @@ MuseScore {
         id: settings
         category: "SoloAnalyser"
         // in options
-        property var rootColor: Core.defRootColor
-        property var bassColor: Core.defBassColor
-        property var chordColor: Core.defChordColor
-        property var scaleColor: Core.defScaleColor
-        property var errorColor: Core.defErrorColor
-        property var alteredColor: Core.defAlteredColor
+        property alias rootColor: rootColorChosser.color
+        property alias bassColor: bassColorChosser.color
+        property alias chordColor: chordColorChosser.color
+        property alias scaleColor: scaleColorChosser.color
+        property alias alteredColor: alteredColorChosser.color
+        // property alias errorColor: errorColorChosser.color
         property var colorNotes: Core.defColorNotes
         property var nameNotes: Core.defNameNotes
         property var textType: Core.defTextType
-        property var useBelowSymbols: Core.defUseBelowSymbols
-        property var useAboveSymbols: Core.defUseAboveSymbols
+        
+        /*property var useAboveSymbols: Core.defUseAboveSymbols
         property var lookAhead: Core.defLookAhead
         property var lookBack: Core.defLookBack
         property var ignoreBrackettedChords: Core.defIgnoreBrackettedChords
@@ -200,7 +203,7 @@ MuseScore {
                     id: rootColorChosser
                     width: 50
                     height: 30
-                    color: "gray"
+                    color: Core.defRootColor
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
@@ -218,7 +221,7 @@ MuseScore {
                     id: bassColorChosser
                     width: 50
                     height: 30
-                    color: "gray"
+                    color: Core.defBassColor
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
@@ -236,7 +239,7 @@ MuseScore {
                     id: chordColorChosser
                     width: 50
                     height: 30
-                    color: "gray"
+                    color: Core.defChordColor
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
@@ -254,7 +257,7 @@ MuseScore {
                     id: alteredColorChosser
                     width: 50
                     height: 30
-                    color: "gray"
+                    color: Core.defAlteredColor
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
@@ -272,7 +275,7 @@ MuseScore {
                     id: scaleColorChosser
                     width: 50
                     height: 30
-                    color: "gray"
+                    color: Core.defScaleColor
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
@@ -290,7 +293,7 @@ MuseScore {
                 id: errorColorChosser
                 width: 50
                 height: 30
-                color: "gray"
+                color: Core.defErrorColor
                 MouseArea {
                 anchors.fill: parent
                 onClicked: {
@@ -334,6 +337,7 @@ MuseScore {
                 Flow {
                     SmallCheckBox {
                         id: chkLookAhead
+                        checked: Core.defLookAhead
                         text: qsTranslate("GenericUI", "Look ahead")
                         hoverEnabled: true
                         ToolTip.visible: hovered
@@ -344,6 +348,7 @@ MuseScore {
                 Flow {
                     SmallCheckBox {
                         id: chkLookBack
+                        checked: Core.defLookBack
                         text: qsTranslate("GenericUI", "Look back")
                         hoverEnabled: true
                         ToolTip.visible: hovered
@@ -354,6 +359,7 @@ MuseScore {
                 Flow {
                     SmallCheckBox {
                         id: chkUseAboveSymbols
+                        checked: Core.defUseAboveSymbols
                         text: qsTranslate("GenericUI", "Allow using preceeding staves chord symbols")
                         hoverEnabled: true
                         ToolTip.visible: hovered
@@ -364,6 +370,7 @@ MuseScore {
                 Flow {
                     SmallCheckBox {
                         id: chkUseBelowSymbols
+                        checked: Core.defUseBelowSymbols
                         text: qsTranslate("GenericUI", "Allow using following staves chord symbols")
                         hoverEnabled: true
                         ToolTip.visible: hovered
@@ -373,6 +380,7 @@ MuseScore {
                 Flow {
                     SmallCheckBox {
                         id: chkIgnoreBrackettedChords
+                        checked:Core.defIgnoreBrackettedChords
                         text: qsTranslate("GenericUI", "Ignore chord names in parentheses")
                         hoverEnabled: true
                         ToolTip.visible: hovered
