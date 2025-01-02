@@ -1,6 +1,6 @@
 /**********************
 /* Parking B - MuseScore - Chord analyser
-/* v1.2.19
+/* v1.2.25
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /*  - 1.0.1: The 7th degree was sometime erased
@@ -31,6 +31,7 @@
 /*  - 1.2.23: Ajout des 7th, 9th, 11th dans les accords 11th et 13th
 /*  - 1.2.23: Ajout des accords 10th
 /*  - 1.2.24: bug: mauvaise reconnaissance des accords ##
+/*  - 1.2.25: CR: Allow for both b9 and #9 together (same for 11 and 13)
 /**********************************************/
 // -----------------------------------------------------------------------
 // --- Vesionning-----------------------------------------
@@ -361,17 +362,20 @@ function scaleFromText(text, bass) {
         n9 = 1;
         pushToKeys(keys, n9, "b9");
         pushToNotes(chordnotes, n9, "b9");
-    } else if (text.includes("#9")) {
+    } 
+    if (text.includes("#9")) {
         console.log("Has #9");
         n9 = 3;
         pushToKeys(keys, n9, "#9");
         pushToNotes(chordnotes, n9, "#9");
-    } else if (text.includes("9")) {
+    } 
+    if (text.includes("9")) {
         n9 = 2;
         pushToKeys(keys, n9, "9");
         pushToNotes(chordnotes, n9, "9");
-
-    } else if (((at = [1, 2, 3].indexOf(bass)) >= 0) && (bass !== n2)) {
+    } 
+    
+    if ((n9===null) && ((at = [1, 2, 3].indexOf(bass)) >= 0) && (bass !== n2)) {
         n9 = bass;
         pushToKeys(keys, bass, "bass as 2/9");
         pushToNotes(chordnotes, bass, ["b", "", "#"][at] + "9(B)");
@@ -406,21 +410,26 @@ function scaleFromText(text, bass) {
         n11 = 4;
         pushToKeys(keys, n11, "b11");
         pushToNotes(chordnotes, n11, "b11");
-    } else if (text.includes("#11")) {
+    } 
+    
+    if (text.includes("#11")) {
         console.log("Has #11");
         n11 = 6;
         pushToKeys(keys, n11, "#11");
         pushToNotes(chordnotes, n11, "#11");
-    } else if (text.includes("11")) {
+    } 
+    
+    if (text.includes("11")) {
         console.log("Has 11");
         n11 = 5;
         pushToKeys(keys, n11, "11");
         pushToNotes(chordnotes, n11, "11");
-    } else if (((at = [4, 5, 6].indexOf(bass)) >= 0) && (bass!==n4)){
+    } 
+    
+     if ((n11===null) && ((at = [4, 5, 6].indexOf(bass)) >= 0) && (bass!==n4)){
         n11 = bass;
         pushToKeys(keys, bass, "bass as 4/11");
         pushToNotes(chordnotes, bass, ["b", "", "#"][at] + "11");
-
     }
 
     if (n4 !== null) {
@@ -461,23 +470,30 @@ function scaleFromText(text, bass) {
         pushToNotes(chordnotes, n6, "6");
         def6 = null;
     }
+
     var n13 = null;
     if (text.includes("b13")) {
         console.log("Has b13");
         n13 = 8;
         pushToKeys(keys, n13, "b13");
         pushToNotes(chordnotes, n13, "b13");
-    } else if (text.includes("#13")) {
+    } 
+    
+    if (text.includes("#13")) {
         console.log("Has #13");
         n13 = 10;
         pushToKeys(keys, n13, "#13");
         pushToNotes(chordnotes, n13, "#13");
-    } else if (text.includes("13")) {
+    } 
+    
+    if (text.includes("13")) {
         console.log("Has 13");
         n13 = 9;
         pushToKeys(keys, n13, "13");
         pushToNotes(chordnotes, n13, "13");
-    } else if (((at = [8, 9, 10].indexOf(bass)) >= 0) && ([n5, n6, n7].indexOf(bass) < 0)) { // The bass is b13,13,#13 but is aot already defined as the 5,6 or 7.
+    } 
+    
+    if ((n13===null) && ((at = [8, 9, 10].indexOf(bass)) >= 0) && ([n5, n6, n7].indexOf(bass) < 0)) { // The bass is b13,13,#13 but is not already defined as the 5,6 or 7.
         n13 = bass;
         pushToKeys(keys, bass, "bass as 6/13");
         pushToNotes(chordnotes, bass, ["b", "", "#"][at] + "13");

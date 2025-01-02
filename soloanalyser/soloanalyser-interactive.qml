@@ -37,6 +37,8 @@ import "core.js" as Core
 /*  - 1.4.10: (see ChordAnalyser.js log 1.2.22)
 /*  - 1.4.11: (see ChordAnalyser.js log 1.2.23+24)
 /*  - 1.4.12: Better settings management
+/*  //- 1.4.12: Option to apply without saving the settings as default settings
+/*  - 1.4.12: CR: New coloring mode "outside"
 /**********************************************/
 
 MuseScore {
@@ -160,6 +162,7 @@ MuseScore {
                 NiceComboBox {
                     //Layout.fillWidth : true
                     id: lstColorNote
+                    property var value: model[currentIndex]
                     model: [{
                             'value': "none",
                             'text': qsTranslate("GenericUI", "None - Don't color notes")
@@ -169,6 +172,9 @@ MuseScore {
                         }, {
                             'value': "all",
                             'text': qsTranslate("GenericUI", "Scale - Color the notes defined by the scale")
+                        }, {
+                            'value': "outside",
+                            'text': qsTranslate("GenericUI", "Outside only - Color the non chord notes")
                         }
                     ]
 
@@ -184,6 +190,7 @@ MuseScore {
                 NiceComboBox {
                     //Layout.fillWidth : true
                     id: lstNameNote
+                    enabled: get(lstColorNote)!=="outside"
                     model: [{
                             'value': "none",
                             'text': qsTranslate("GenericUI", "None - Don't name notes")
@@ -445,6 +452,7 @@ MuseScore {
                 ToolTip.visible: hovered
                 ToolTip.text: qsTranslate("GenericUI", "Reset to default values")
 
+                    DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
             }
 
             Item { // spacer // DEBUG Item/Rectangle
@@ -459,43 +467,21 @@ MuseScore {
                 background.opacity: 0 // hide default white background
 
                 Button {
-                    text: qsTranslate("GenericUI", "Apply")
+                    text: qsTranslate("GenericUI", "Apply 🖫")
+                    id: btnApply
                     DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
                 }
+                /*Button {
+                    text: qsTranslate("GenericUI", "Apply")
+                    id: btnApplyNoStore
+                    DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
+                }*/
                 Button {
                     text: qsTranslate("GenericUI", "Clear")
                     id: btnClear
                     DialogButtonBox.buttonRole: DialogButtonBox.ResetRole
                 }
 
-                onAccepted: {
-                    // push values to backend
-                    settings.rootColor = rootColorChosser.color;
-                    settings.bassColor = bassColorChosser.color;
-                    settings.chordColor = chordColorChosser.color;
-                    settings.scaleColor = scaleColorChosser.color;
-                    settings.alteredColor = alteredColorChosser.color;
-                    // settings.errorColor = errorColorChosser.color;
-
-                    settings.colorNotes = get(lstColorNote);
-                    settings.nameNotes = get(lstNameNote);
-                    settings.textType = get(lstFormText);
-
-                    settings.useBelowSymbols = chkUseBelowSymbols.checked;
-                    settings.useAboveSymbols = chkUseAboveSymbols.checked;
-                    settings.lookAhead = chkLookAhead.checked;
-                    settings.lookBack = chkLookBack.checked;
-                    settings.ignoreBrackettedChords = chkIgnoreBrackettedChords.checked;
-
-                    // save values
-                    // AUTOMATIC
-
-                    // execute
-                    Core.doAnalyse();
-                    //Qt.quit();
-                    mainWindow.parent.Window.window.close();
-                  
-                }
 
                 onClicked: {
                     console.log("~~~~~~~~~~~~" + button.text + "~~~~~~~~~~~~");
@@ -503,7 +489,38 @@ MuseScore {
                         Core.clearAnalyse();
                         //Qt.quit();
                         mainWindow.parent.Window.window.close();
+                    } else if ((button==btnApply) || (button==btnApplyNoStore)) {
+                        if (button==btnApply) {
+                            // push values to backend
+                            settings.rootColor = rootColorChosser.color;
+                            settings.bassColor = bassColorChosser.color;
+                            settings.chordColor = chordColorChosser.color;
+                            settings.scaleColor = scaleColorChosser.color;
+                            settings.alteredColor = alteredColorChosser.color;
+                            // settings.errorColor = errorColorChosser.color;
+
+                            settings.colorNotes = get(lstColorNote);
+                            settings.nameNotes = get(lstNameNote);
+                            settings.textType = get(lstFormText);
+
+                            settings.useBelowSymbols = chkUseBelowSymbols.checked;
+                            settings.useAboveSymbols = chkUseAboveSymbols.checked;
+                            settings.lookAhead = chkLookAhead.checked;
+                            settings.lookBack = chkLookBack.checked;
+                            settings.ignoreBrackettedChords = chkIgnoreBrackettedChords.checked;
+
+                            // save values
+                            // AUTOMATIC
+                        
+                        }
+                            
+                        // execute
+                        Core.doAnalyse();
+                        //Qt.quit();
+                        mainWindow.parent.Window.window.close();
+                      
                     }
+
                 }
                 onRejected: {
                   //Qt.quit()

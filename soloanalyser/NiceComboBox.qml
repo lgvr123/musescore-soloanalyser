@@ -3,6 +3,7 @@ import QtQuick.Controls 2.2
 
 // v1.1.0: including textRole
 // v1.1.1: bugfix on textRole
+// v1.1.2: disabled color
 
 ComboBox {
     id: control
@@ -24,6 +25,7 @@ ComboBox {
 
         text: (control.model[control.currentIndex])?control.model[control.currentIndex][textRole]:"--"
         anchors.verticalCenter: parent.verticalCenter
+        color: (control.enabled)?sysActivePalette.text:sysActivePalette.mid
         leftPadding: 10
         rightPadding: 10
         topPadding: 5
@@ -63,5 +65,8 @@ ComboBox {
 
         return pwidth;
     }
+
+    SystemPalette { id: sysActivePalette; colorGroup: SystemPalette.Active }
+    SystemPalette { id: sysDisabledPalette; colorGroup: SystemPalette.Disabled }
 
 }

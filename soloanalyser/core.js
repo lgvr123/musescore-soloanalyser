@@ -23,6 +23,7 @@
 /*  - 1.2.9: Better treatment of lack of chord symbols and uparsable chord symbols (e.g. chord symbols for files just imported from MusicXML does not work unless the chords are manually edited).
 /*  - 1.2.10: Bug: Chord Symbol attached to Fret Diagrams were not used
 /*  - 1.2.11: Bug: Wrong usage the lookAhead stored setting
+/*  - 1.2.11: CR: New coloring mode "outside"
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -52,7 +53,7 @@ var defTextType = "fingering"; // fingering|lyrics
 function doAnalyse() {
 
     // Config
-    var colorNotes = settings.colorNotes; // none|chord|all
+    var colorNotes = settings.colorNotes; // none|chord|all|outside
     var nameNotes = settings.nameNotes; // none|chord|all
     var rootColor = settings.rootColor;
     var bassColor = settings.bassColor;
@@ -74,7 +75,7 @@ function doAnalyse() {
         colorNotes = defColorNotes;
         nameNotes = defNameNotes;
     }
-
+    
     // Selection
     var chords = getSelection();
     if (!chords || (chords.length == 0))
@@ -281,26 +282,54 @@ function doAnalyse() {
                         var p = (tpitch - curChord.pitch + 12) % 12;
                         var color = null;
                         if (p == 0) {
-                            color = rootColor;
-                            degree = "1";
+                            if (colorNotes !== "outside") {
+                                color = rootColor;
+                                degree = "1";
+                            } else {
+                                color="black"
+                            }
                         } else {
                             var role = curChord.getChordNote(p);
 
+                            
                             if (role !== undefined) {
                                 console.log("ROLE FOUND : " + role.note + "-" + role.role);
-
-                                degree = role.role;
-                                color = (curChord.bass != null && p == curChord.bass.key) ? bassColor : ((degree.indexOf("b") == 0) || (degree.indexOf("#") == 0)) ? alteredColor : chordColor;
+                                if (colorNotes !== "outside") {
+                                    degree = role.role;
+                                    color = (curChord.bass != null && p == curChord.bass.key) ? bassColor : ((degree.indexOf("b") == 0) || (degree.indexOf("#") == 0)) ? alteredColor : chordColor;
+                                } else {
+                                    color="black"
+                                }
                             } else if (curChord.outside.indexOf(p) >= 0) {
                                 color = errorColor;
                             } else if (curChord.keys.indexOf(p) >= 0 && (colorNotes === "all")) {
                                 color = scaleColor;
+                            } else if (colorNotes === "outside") {
+                                color = errorColor;
+                                
+                                if (curChord.keys.indexOf(p) >= 0) {
+                                    // Si dans la gamme => pas outside
+                                    color="black";
+                                } else {
+                                    var role = curChord.getScaleNote(p);
+                                    
+                                    if (role !== undefined) {
+                                        console.log("ROLE FOUND in SCALE: " + role.note + "-" + role.role);
+                                        degree = role.role;
+                                        //if ((degree.indexOf("(") >=0 ) ||(degree.indexOf("b") >=0 ) || (degree.indexOf("#") >= 0)) {
+                                            color = alteredColor;
+                                        // } else {
+                                            // color=scaleColor
+                                        // }
+                                    }
+                                }
+                                
                             } else {
                                 color = "black";
                             }
 
                             // Option de donner un nom à toutes les notes
-                            if (nameNotes === "all" && degree === null) {
+                            if (nameNotes === "all" && colorNotes !== "outside" && degree === null) {
                                 var role = curChord.getScaleNote(p);
 
                                 if (role !== undefined) {
