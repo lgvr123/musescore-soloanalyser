@@ -32,6 +32,7 @@
 /*  - 1.2.23: Ajout des accords 10th
 /*  - 1.2.24: bug: mauvaise reconnaissance des accords ##
 /*  - 1.2.25: CR: Allow for both b9 and #9 together (same for 11 and 13)
+/*  - 1.3.0: CR: Support for Tone sets
 /**********************************************/
 // -----------------------------------------------------------------------
 // --- Vesionning-----------------------------------------
@@ -39,7 +40,7 @@
 var default_names = ["1", "b9", "2", "#9", "b11", "4", "#11", "(5)", "m6", "M6", "m7", "M7"];
 
 function checkVersion(expected) {
-    var version = "1.2.24";
+    var version = "1.3.00";
 
     var aV = version.split('.').map(function (v) {
         return parseInt(v);
@@ -60,8 +61,12 @@ function checkVersion(expected) {
 
 function chordFromText(source) {
 
+    var pitchSet=source.match(/^(T[0-9]{1,2}|[A-G][#b]{0,2})?\[(([0-9te]+[,]*)+)\]$/);
+    if (pitchSet!=null) return chordForPitchSet(pitchSet[1]?pitchSet[1]:"T0",pitchSet[2]);
+
     //var text = source.replace(/(\(|\))/g, '');
     var text = source.replace(/(^\s*\(\s*|\s*\)\s*$)/g, ''); // on vire les "(" et ")" de début et fin
+    var name = text;
 
     console.log("chordFromText: source: "+source);
     console.log("chordFromText: cleaned: "+text);
@@ -99,7 +104,7 @@ function chordFromText(source) {
         scale = scaleFromText(text);
 
     // var chord = new chordClass(tpc, text, n3, n5, n7, keys);
-    var chord = new chordClass(rootacc.tpc, text, scale, (bassacc !== null) ? bassacc.tpc : null);
+    var chord = new chordClass(rootacc.tpc, name, scale, (bassacc !== null) ? bassacc.tpc : null);
 
     console.log(">>>" + chord);
 
@@ -583,6 +588,36 @@ function pushToKeys(keys, value, comment) {
 	}
 	
     keys.push(value);
+}
+
+function chordForPitchSet(transposition,pitches) {
+    if (!Array.isArray(pitches)) {
+        pitches=pitches.replace(/t/g,'10').replace(/e/g,'11');
+        pitches=pitches.split(",");
+    }
+    pitches=pitches.map(function(e) { return parseInt(e)});
+    
+    var chordnotes=pitches.map(function (p) { return {note: p, role: ''+p}; });
+    
+    var rootText;
+    if(transposition.substring(0,1)==="T") {
+        rootText=["C","C#","D","D#","E","F","F#","G","G#","A","Bb","B"][transposition.substring(1)];
+    } else {
+        rootText=transposition;
+    }
+    
+    console.log("Transposition: "+transposition+" => "+rootText);
+    console.log(JSON.stringify(chordnotes));
+    
+    var rootacc=getRootAccidental(rootText);
+    
+    var scale=new scaleClass(pitches,chordnotes,chordnotes)
+    var chord = new chordClass(rootacc.tpc, "T"+transposition+"["+pitches+"]", scale, null);
+
+    console.log(">>>" + chord);
+    
+    return chord;
+
 }
 
 function chordTextClass(str) {

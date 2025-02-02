@@ -24,6 +24,7 @@
 /*  - 1.2.10: Bug: Chord Symbol attached to Fret Diagrams were not used
 /*  - 1.2.11: Bug: Wrong usage the lookAhead stored setting
 /*  - 1.2.11: CR: New coloring mode "outside"
+/*  - 1.2.11: Bug: Wrong analyse when not all chords are on the same voice
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -180,6 +181,13 @@ function doAnalyse() {
         }
     }
     
+    // remplir les voix intermédiaires (maintenant qu'on consolide tout sur la 1ère voix)
+    for (var track = 1; track <= trackMax; track++) { // !! démarre à 1
+        var track0=((track/4)|0)*4;
+        console.log("!!!! COPY track "+track0+" to "+track);
+        if (track>track0 && track<(track0+4)) 
+            byTrack[track] = byTrack[track0];
+    }
     
     // consolidation de haut en bas
 	if (useAboveSymbols) {
@@ -281,64 +289,65 @@ function doAnalyse() {
 						
                         var p = (tpitch - curChord.pitch + 12) % 12;
                         var color = null;
-                        if (p == 0) {
+                        var role = curChord.getChordNote(p);
+
+                        
+                        if (role !== undefined) {
+                            console.log("ROLE FOUND : " + role.note + "-" + role.role);
                             if (colorNotes !== "outside") {
-                                color = rootColor;
-                                degree = "1";
-                            } else {
+                                degree = role.role;
+                                if (p == 0) {
+                                    color = rootColor;
+                                } else if ((curChord.bass != null && p == curChord.bass.key)) {
+                                    color = bassColor;
+                                } else if ((degree.indexOf("b") == 0) || (degree.indexOf("#") == 0)) {
+                                    color = alteredColor;
+                                } else {
+                                    color = chordColor;
+                                }
+                            }
+                            else {
                                 color="black"
                             }
-                        } else {
-                            var role = curChord.getChordNote(p);
-
+                        } else if (curChord.outside.indexOf(p) >= 0) {
+                            color = errorColor;
+                        } else if (curChord.keys.indexOf(p) >= 0 && (colorNotes === "all")) {
+                            color = scaleColor;
+                        } else if (colorNotes === "outside") {
+                            color = errorColor;
                             
-                            if (role !== undefined) {
-                                console.log("ROLE FOUND : " + role.note + "-" + role.role);
-                                if (colorNotes !== "outside") {
-                                    degree = role.role;
-                                    color = (curChord.bass != null && p == curChord.bass.key) ? bassColor : ((degree.indexOf("b") == 0) || (degree.indexOf("#") == 0)) ? alteredColor : chordColor;
-                                } else {
-                                    color="black"
-                                }
-                            } else if (curChord.outside.indexOf(p) >= 0) {
-                                color = errorColor;
-                            } else if (curChord.keys.indexOf(p) >= 0 && (colorNotes === "all")) {
-                                color = scaleColor;
-                            } else if (colorNotes === "outside") {
-                                color = errorColor;
-                                
-                                if (curChord.keys.indexOf(p) >= 0) {
-                                    // Si dans la gamme => pas outside
-                                    color="black";
-                                } else {
-                                    var role = curChord.getScaleNote(p);
-                                    
-                                    if (role !== undefined) {
-                                        console.log("ROLE FOUND in SCALE: " + role.note + "-" + role.role);
-                                        degree = role.role;
-                                        //if ((degree.indexOf("(") >=0 ) ||(degree.indexOf("b") >=0 ) || (degree.indexOf("#") >= 0)) {
-                                            color = alteredColor;
-                                        // } else {
-                                            // color=scaleColor
-                                        // }
-                                    }
-                                }
-                                
+                            if (curChord.keys.indexOf(p) >= 0) {
+                                // Si dans la gamme => pas outside
+                                color="black";
                             } else {
-                                color = "black";
-                            }
-
-                            // Option de donner un nom à toutes les notes
-                            if (nameNotes === "all" && colorNotes !== "outside" && degree === null) {
                                 var role = curChord.getScaleNote(p);
-
+                                
                                 if (role !== undefined) {
                                     console.log("ROLE FOUND in SCALE: " + role.note + "-" + role.role);
                                     degree = role.role;
+                                    //if ((degree.indexOf("(") >=0 ) ||(degree.indexOf("b") >=0 ) || (degree.indexOf("#") >= 0)) {
+                                        color = alteredColor;
+                                    // } else {
+                                        // color=scaleColor
+                                    // }
                                 }
                             }
-                            console.log("note pitch: "+tpitch + ((tpitch!==note.pitch)?(" (transposing!! original: "+note.pitch+")"):"")+ " | Chord pitch:" + curChord.pitch + " ==> position: " + p + " ==> color: " + color);
+                            
+                        } else {
+                            color = "black";
                         }
+
+                        // Option de donner un nom à toutes les notes
+                        if (nameNotes === "all" && colorNotes !== "outside" && degree === null) {
+                            var role = curChord.getScaleNote(p);
+
+                            if (role !== undefined) {
+                                console.log("ROLE FOUND in SCALE: " + role.note + "-" + role.role);
+                                degree = role.role;
+                            }
+                        }
+                        console.log("note pitch: "+tpitch + ((tpitch!==note.pitch)?(" (transposing!! original: "+note.pitch+")"):"")+ " | Chord pitch:" + curChord.pitch + " ==> position: " + p + " ==> color: " + color);
+                        
                     } else
                         // no current chord, so resetting the color
                     {
@@ -403,15 +412,17 @@ function validateAnnotation(ann, segment, trackMax, byTrack, ignoreBrackettedCho
 
     var chord = ChordHelper.chordFromText(ann.text);
     if (chord !== null) {
-    console.log(segment.tick+": adding "+ann.text+" to track "+ann.track);
+        // Rem: On consolide tous les accords sur la voie 1 de la piste pour éviter des confusions 
+        var trackConsolidation=(((ann.track/4) | 0)*4);
+        console.log(segment.tick+": adding "+ann.text+" of track "+ann.track+" of track "+trackConsolidation);
         // If the chord is correctly analyzed, add it (to avoid invalid chord names, or "%" chord names)
 
-        if (byTrack[ann.track] === undefined)
-            byTrack[ann.track] = [];
+        if (byTrack[trackConsolidation] === undefined)
+            byTrack[trackConsolidation] = [];
 
         count++;
 
-        byTrack[ann.track].push({
+        byTrack[trackConsolidation].push({
             tick: segment.tick,
             chord: chord
         });

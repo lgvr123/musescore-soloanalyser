@@ -4,8 +4,20 @@ The *Solo Analyser plugin* will highlight key notes in a Solo score.
 
 ![SoloAnalyser in action](/demo/soloanalyzer-demo.png)
 
-## What's new in 1.4.7 ?
-* [Bug] The plugin renders now correclty in MuseScore's darkmode.
+## What's new in 1.5.0 ?
+* CR: New color mode "outside" (draft)
+* CR: New ToneSet support (e.g. "T4[0,1,3,4]" ≡ E,F,G,Ab -- Additional notation E[0,1,3,4] = Set [0,1,3,4] starting from E, ≡ E,F,G,Ab)
+* CR: New option for not using chords preceeding the selection
+* CR: Better treatment of lack of chord symbols and uparsable chord symbols (e.g. chord symbols for files just imported from MusicXML does not work unless the chords are manually edited).
+* CR: Allow for both b9 and #9 together (same for 11 and 13)
+* CR: New 10th chords (e.g. Cm7(10))
+* Bug: Chord Symbol attached to Fret Diagrams were not used
+* Bug: Wrong usage the lookAhead stored setting
+* Bug: b5 and #5 chords wrongly analysed
+* Bug: Addition of 7th, 9th, 11th in 11th and 13th chords
+* Bug: Wrong analyse of ## chords
+* Bug: Wrong analyse when not all chords are on the same voice
+* Bug: A Chord Symbol is not used in the analyse when the track 0 has nothing defined at that segment's tick.
 
 ## Plugins
 

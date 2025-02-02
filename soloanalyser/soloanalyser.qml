@@ -35,12 +35,16 @@ import "core.js" as Core
 /*  - 1.4.8: (see ChordAnalyser.js log 1.2.22)
 /*  - 1.4.9: (see ChordAnalyser.js log 1.2.23+24)
 /*  - 1.4.10: Bug: Wrong usage the lookAhead stored setting
+/*  - 1.5.0: CR: New color mode "outside" (draft)
+/*  - 1.5.0: CR: New ToneSet support
+/*  - 1.5.0: CR: Allow for both b9 and #9 together (same for 11 and 13)
+/*  - 1.5.0: Bug: Wrong analyse when not all chords are on the same voice
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins.Solo Analyser." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.4.10"
+    version: "1.5.0"
 
     readonly property var pluginName: "Analyse"
     id: mainWindow
