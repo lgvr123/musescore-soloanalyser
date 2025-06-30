@@ -33,6 +33,7 @@
 /*  - 1.2.24: bug: mauvaise reconnaissance des accords ##
 /*  - 1.2.25: CR: Allow for both b9 and #9 together (same for 11 and 13)
 /*  - 1.3.0: CR: Support for Tone sets
+// /*  - 1.3.1: CR: Support for "β" chords
 /**********************************************/
 // -----------------------------------------------------------------------
 // --- Vesionning-----------------------------------------
@@ -40,7 +41,7 @@
 var default_names = ["1", "b9", "2", "#9", "b11", "4", "#11", "(5)", "m6", "M6", "m7", "M7"];
 
 function checkVersion(expected) {
-    var version = "1.3.00";
+    var version = "1.3.0";
 
     var aV = version.split('.').map(function (v) {
         return parseInt(v);
@@ -71,6 +72,9 @@ function chordFromText(source) {
     console.log("chordFromText: source: "+source);
     console.log("chordFromText: cleaned: "+text);
 
+    var betaChord=(text.match(/β/)>=0);
+    if (betaChord) text=text.replace(/β/g,"");
+
     var rootbass = text.split("/");
     text = rootbass[0];
     var bass = (rootbass.length > 1) ? rootbass[1] : null;
@@ -78,6 +82,10 @@ function chordFromText(source) {
     console.log("chordFromText: /w bass : "+text);
     console.log("chordFromText: bass : "+text);
 
+    // if ((bass !== null) && betaChord) {
+        // console.log("!! A beta chord cannot have a bass note");
+        // return null;
+    // }
 
     // Root
     var rootacc = getRootAccidental(text);
@@ -102,6 +110,11 @@ function chordFromText(source) {
     }
     if (scale === null)
         scale = scaleFromText(text);
+
+    // if (betaChord) {
+        // bassacc=rootacc;
+        // bassacc.tpc++;
+    // }
 
     // var chord = new chordClass(tpc, text, n3, n5, n7, keys);
     var chord = new chordClass(rootacc.tpc, name, scale, (bassacc !== null) ? bassacc.tpc : null);
@@ -565,7 +578,7 @@ function scaleFromText(text, bass) {
     return scale;
 }
 
-function pushToNotes(collection, note, role) {
+function pushToNotes(collection, note, role, color) {
     var exist = getNote(collection, note);
 
     if (exist) {
@@ -575,7 +588,8 @@ function pushToNotes(collection, note, role) {
     console.log("....pushing note >>" + note + " as " + role + "<<");
     collection.push({
         "note": note,
-        "role": role
+        "role": role,
+        "color": color
     });
 }
 
@@ -598,6 +612,8 @@ function chordForPitchSet(transposition,pitches) {
     pitches=pitches.map(function(e) { return parseInt(e)});
     
     var chordnotes=pitches.map(function (p) { return {note: p, role: ''+p}; });
+    var all=[0,1,2,3,4,5,6,7,8,9,10,11];
+    var outside=all.filter(function(item) { return pitches.indexOf(item)<0; });
     
     var rootText;
     if(transposition.substring(0,1)==="T") {
@@ -611,7 +627,7 @@ function chordForPitchSet(transposition,pitches) {
     
     var rootacc=getRootAccidental(rootText);
     
-    var scale=new scaleClass(pitches,chordnotes,chordnotes)
+    var scale=new scaleClass(pitches,chordnotes,chordnotes,outside)
     var chord = new chordClass(rootacc.tpc, "T"+transposition+"["+pitches+"]", scale, null);
 
     console.log(">>>" + chord);
@@ -750,7 +766,7 @@ function scaleClass(keys, chordnotes, allnotes, outside) {
         return nr;
         }
     ) : allnotes;
-    this.outside = (!outside || (outside == null)) ? [] : outside; // keeping "==" on purpose
+    this.outside = Array.isArray(outside)?outside:[];
 
     var n3 = this.chordnotes.filter(function (e) {
         return (parseInt(e.role, 10) === 3);
@@ -768,21 +784,24 @@ function scaleClass(keys, chordnotes, allnotes, outside) {
     });
 
     this.toString = function () {
-        return chordnotes
+        return this.chordnotes
         .sort(function (a, b) {
             return a.note - b.note;
         })
         .map(function (e) {
             return e.role + ": " + e.note;
         }).join(', ') + "  === " +
-        allnotes
+        this.allnotes
         .sort(function (a, b) {
             return a.note - b.note;
         })
         .map(function (e) {
             return e.role + ": " + e.note;
         }).join(', ') + "  === " +
-        keys.sort(function (a, b) {
+        this.keys.sort(function (a, b) {
+            return a - b;
+        }).join(', ') + "  === " +
+        this.outside.sort(function (a, b) {
             return a - b;
         }).join(', '); ;
 
