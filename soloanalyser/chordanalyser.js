@@ -1,6 +1,6 @@
 /**********************
 /* Parking B - MuseScore - Chord analyser
-/* v1.2.25
+/* v1.3.1
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /*  - 1.0.1: The 7th degree was sometime erased
@@ -34,6 +34,8 @@
 /*  - 1.2.25: CR: Allow for both b9 and #9 together (same for 11 and 13)
 /*  - 1.3.0: CR: Support for Tone sets
 // /*  - 1.3.1: CR: Support for "β" chords
+/*  - 1.3.1: Bug: improved label of in and out notes of tonesets
+
 /**********************************************/
 // -----------------------------------------------------------------------
 // --- Vesionning-----------------------------------------
@@ -71,7 +73,7 @@ function chordFromText(source) {
 
     console.log("chordFromText: source: "+source);
     console.log("chordFromText: cleaned: "+text);
-
+    
     var betaChord=(text.match(/β/)>=0);
     if (betaChord) text=text.replace(/β/g,"");
 
@@ -107,10 +109,10 @@ function chordFromText(source) {
             var relpitch = (bassacc.tpc.pitch - rootacc.tpc.pitch + 12) % 12;
             scale = scaleFromText(text, relpitch);
         }
-    }
+    } 
     if (scale === null)
         scale = scaleFromText(text);
-
+    
     // if (betaChord) {
         // bassacc=rootacc;
         // bassacc.tpc++;
@@ -611,7 +613,7 @@ function chordForPitchSet(transposition,pitches) {
     }
     pitches=pitches.map(function(e) { return parseInt(e)});
     
-    var chordnotes=pitches.map(function (p) { return {note: p, role: ''+p}; });
+    var chordnotes=pitches.map(function (p,i) { return {note: p, role: ''+i/*p*/}; });
     var all=[0,1,2,3,4,5,6,7,8,9,10,11];
     var outside=all.filter(function(item) { return pitches.indexOf(item)<0; });
     

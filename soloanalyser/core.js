@@ -1,7 +1,7 @@
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser core plugin
-/* v1.2.11
+/* v1.2.12
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /* 	- 1.1.0: New alteredColor
@@ -25,6 +25,7 @@
 /*  - 1.2.11: Bug: Wrong usage the lookAhead stored setting
 /*  - 1.2.11: CR: New coloring mode "outside"
 /*  - 1.2.11: Bug: Wrong analyse when not all chords are on the same voice
+/*  - 1.2.12: Bug: improved label of in and out notes of tonesets
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -316,7 +317,10 @@ function doAnalyse() {
                         } else if (colorNotes === "outside") {
                             color = errorColor;
                             
-                            if (curChord.keys.indexOf(p) >= 0) {
+                            if (curChord.outside.indexOf(p) >= 0) {
+                                color = errorColor;
+                                if (!degree) degree="out"
+                            } else if (curChord.keys.indexOf(p) >= 0) {
                                 // Si dans la gamme => pas outside
                                 color="black";
                             } else {
@@ -330,6 +334,9 @@ function doAnalyse() {
                                     // } else {
                                         // color=scaleColor
                                     // }
+                                } else {
+                                   color = errorColor;
+                                    if (!degree) degree="n.f."
                                 }
                             }
                             
