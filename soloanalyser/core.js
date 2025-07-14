@@ -26,6 +26,7 @@
 /*  - 1.2.11: CR: New coloring mode "outside"
 /*  - 1.2.11: Bug: Wrong analyse when not all chords are on the same voice
 /*  - 1.2.12: Bug: improved label of in and out notes of tonesets
+/*  - 1.2.12: Improvment: Merge note analyse function from Core.js and scaleAnalyser
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -272,110 +273,8 @@ function doAnalyse() {
                 var asLyrics = [];
                 for (var j = 0; j < notes.length; j++) {
                     var note = notes[j];
-					
-					if (note.headGroup === NoteHeadGroup.HEAD_SLASH) continue; // Don't analyse slash notes
-					
-                    var color = null;
-                    var degree = null;
-
-                    // color based on role in chord
-                    if (curChord != null) {
-						// !! The chord name is depending if we are in Instrument Pitch or Concert Pitch (this is automatic in MuseScore)
-						// So we have to retrieve the pitch as shown on the score. In instrument pitch this might be different than the pitch
-						// given by note.pitch which is corresponding to the *concert pitch*. 
-						
-						// var tpitch = note.pitch - (note.tpc - note.tpc1); // note displayed as if it has that pitch
-						var tpitch = note.pitch + NoteHelper.deltaTpcToPitch(note.tpc,note.tpc1); // note displayed as if it has that pitch
-						
-						
-                        var p = (tpitch - curChord.pitch + 12) % 12;
-                        var color = null;
-                        var role = curChord.getChordNote(p);
-
                         
-                        if (role !== undefined) {
-                            console.log("ROLE FOUND : " + role.note + "-" + role.role);
-                            if (colorNotes !== "outside") {
-                                degree = role.role;
-                                if (p == 0) {
-                                    color = rootColor;
-                                } else if ((curChord.bass != null && p == curChord.bass.key)) {
-                                    color = bassColor;
-                                } else if ((degree.indexOf("b") == 0) || (degree.indexOf("#") == 0)) {
-                                    color = alteredColor;
-                                } else {
-                                    color = chordColor;
-                                }
-                            }
-                            else {
-                                color="black"
-                            }
-                        } else if (curChord.outside.indexOf(p) >= 0) {
-                            color = errorColor;
-                        } else if (curChord.keys.indexOf(p) >= 0 && (colorNotes === "all")) {
-                            color = scaleColor;
-                        } else if (colorNotes === "outside") {
-                            color = errorColor;
-                            
-                            if (curChord.outside.indexOf(p) >= 0) {
-                                color = errorColor;
-                                if (!degree) degree="out"
-                            } else if (curChord.keys.indexOf(p) >= 0) {
-                                // Si dans la gamme => pas outside
-                                color="black";
-                            } else {
-                                var role = curChord.getScaleNote(p);
-                                
-                                if (role !== undefined) {
-                                    console.log("ROLE FOUND in SCALE: " + role.note + "-" + role.role);
-                                    degree = role.role;
-                                    //if ((degree.indexOf("(") >=0 ) ||(degree.indexOf("b") >=0 ) || (degree.indexOf("#") >= 0)) {
-                                        color = alteredColor;
-                                    // } else {
-                                        // color=scaleColor
-                                    // }
-                                } else {
-                                   color = errorColor;
-                                    if (!degree) degree="n.f."
-                                }
-                            }
-                            
-                        } else {
-                            color = "black";
-                        }
-
-                        // Option de donner un nom à toutes les notes
-                        if (nameNotes === "all" && colorNotes !== "outside" && degree === null) {
-                            var role = curChord.getScaleNote(p);
-
-                            if (role !== undefined) {
-                                console.log("ROLE FOUND in SCALE: " + role.note + "-" + role.role);
-                                degree = role.role;
-                            }
-                        }
-                        console.log("note pitch: "+tpitch + ((tpitch!==note.pitch)?(" (transposing!! original: "+note.pitch+")"):"")+ " | Chord pitch:" + curChord.pitch + " ==> position: " + p + " ==> color: " + color);
-                        
-                    } else
-                        // no current chord, so resetting the color
-                    {
-                        color = "black";
-                    }
-
-                    console.log("colorNotes : " + colorNotes + ", color: " + color);
-                    console.log("nameNotes : " + nameNotes + ", text: " + degree);
-
-
-                    if (colorNotes !== "none") {
-						note.color = (color != null) ? color : "black";
-					}
-                    if (textType == "fingering") {
-                        writeDegree(note, (nameNotes !== "none") ? degree : null);
-                    } else {
-                        // clear Fingering on that note
-                        writeDegree(note, null);
-                        // Memorize degree as lyrics
-                        asLyrics.push((nameNotes !== "none") ? degree : null)
-                    }
+                    analyseNote(note,colorNotes, nameNotes, curChord, asLyrics);
 
                 }
 
@@ -391,6 +290,181 @@ function doAnalyse() {
     }
 
     curScore.endCmd();
+
+}
+
+/**
+* Label and color the given note according to the given chords and the formating options
+* @param note       the note to analyse
+* @param curChord   the chord for which the note must be analysed
+* @param colorNotes the coloring note mode
+* @param nameNotes  the leabeling note mode
+* @param asLyrics   an array of labels for the note's segment. If the analyse must be
+    added as lyrics (and not fingering) then the label is added to that array.
+*/
+function analyseNote(note,colorNotes, nameNotes, curChord, asLyrics) {
+    if (note.headGroup === NoteHeadGroup.HEAD_SLASH) return; // Don't analyse slash notes
+    
+    // Config
+    var rootColor = settings.rootColor;
+    var bassColor = settings.bassColor;
+    var errorColor = settings.errorColor;
+    var scaleColor = settings.scaleColor;
+    var chordColor = settings.chordColor;
+    var alteredColor = (settings.alteredColor) ? settings.alteredColor : defAlteredColor
+
+    var textType = (settings.textType) ? settings.textType : defTextType
+
+    // if configured for doing nothing (no colours, no names) we use the default values
+    if (colorNotes == "none" && nameNotes == "none") {
+        colorNotes = defColorNotes;
+        nameNotes = defNameNotes;
+    }
+
+    var color = null;
+    var degree = null;
+
+    // color based on role in chord
+    if (curChord != null) {
+        // !! The chord name is depending if we are in Instrument Pitch or Concert Pitch (this is automatic in MuseScore)
+        // So we have to retrieve the pitch as shown on the score. In instrument pitch this might be different than the pitch
+        // given by note.pitch which is corresponding to the *concert pitch*. 
+        
+        // var tpitch = note.pitch - (note.tpc - note.tpc1); // note displayed as if it has that pitch
+        var tpitch = note.pitch + NoteHelper.deltaTpcToPitch(note.tpc,note.tpc1); // note displayed as if it has that pitch
+        
+        
+        var p = (tpitch - curChord.pitch + 12) % 12;
+        var color = null;
+        var role = curChord.getChordNote(p);
+
+        var sRole = curChord.getScaleNote(p);
+        var cRole = curChord.getChordNote(p);
+
+        var color;
+        
+        if (colorNotes == "outside") {
+            // degree=(nameNotes==="chord")?
+                // (cRole?cRole.role:undefined):
+                // (sRole?sRole.role:undefined);
+            degree=(sRole?sRole.role:undefined);
+            
+            if (sRole) {
+                console.log("ROLE FOUND in SCALE: " + sRole.note + "-" + sRole.role);
+                console.log("=> degre = " + (degree?degree:"undefined"));
+            } else {
+                console.log("ROLE FOUND in SCALE: Not Found");
+            }
+            
+            if (curChord.outside.indexOf(p) >= 0) {
+                color = errorColor;
+                if (!degree) degree="out"
+            } else if (curChord.keys.indexOf(p) >= 0) {
+                // Si dans la gamme => pas outside
+                color="black";
+            } else if (sRole) {
+                //TODO Je veux marquer comme outside certaines notes
+                // identfiées, E.g. un m7 dans un accors Maj7
+                //if ((degree.indexOf("(") >=0 ) ||(degree.indexOf("b") >=0 ) || (degree.indexOf("#") >= 0)) {
+                    color = alteredColor;
+                // } else {
+                    // color=scaleColor
+                // }
+            } 
+            
+            if (!degree) degree="n.f."
+            if (!color) color = errorColor;
+            
+            if (nameNotes!=="all" && color==="black") {
+                // Je n'affiche le degree des notes trouvées (i.e. "black")
+                // qu'en mode nameNotes "all"
+                degree=undefined;
+            }
+            
+        } else {
+            // modes traditionnels
+            color = sRole ? sRole.color : undefined; // undefined s'il faut utiliser les couleurs par défaut
+
+            // le toot: traitement spécial
+            if (p == 0) {
+                if (typeof color === "undefined")
+                    color = rootColor;
+                
+                console.log("0) sR: " + ((sRole) ? sRole.role : "/") + ", cR: " + ((cRole) ? cRole.role : "/"));
+                if (sRole)
+                    degree = sRole.role 
+                else if (cRole)
+                     degree = cRole.role 
+                else degree = "1";
+            }
+            
+            // les autres: traitement générique
+            else {
+                // Role identifié
+                if (cRole !== undefined) {
+                    console.log("ROLE FOUND : " + cRole.note + "-" + cRole.role);
+                    degree = cRole.role;
+                
+                    if (!color) {
+                        if ((curChord.bass != null && p == curChord.bass.key)) {
+                            color = bassColor;
+                        } else if ((degree.indexOf("b") == 0) || (degree.indexOf("#") == 0)) {
+                            color = alteredColor;
+                        } else {
+                            color = chordColor;
+                        }                    
+                    }
+                    
+                } // Role identifié
+                // Rôle non identifé
+                else if (curChord.outside.indexOf(p) >= 0) {
+                    if (!color) color = errorColor;
+                } else if (curChord.keys.indexOf(p) >= 0 && (colorNotes === "all")) {
+                    if (!color) color = scaleColor;
+                } else {
+                if (typeof color === "undefined")
+                    if (colorNotes === "shade") 
+                        color = errorColor; 
+                    else
+                        // En mode chord|all une note non trouvée, mais *pas explicitement* dans "outside" est juste noire
+                        color = "black";
+                } // Rôle non identifié
+                
+                // Option de donner un nom à toutes les notes
+                if (degree===null && nameNotes === "all" ) {
+                    if (sRole !== undefined) {
+                        console.log("ROLE FOUND in SCALE: " + sRole.note + "-" + sRole.role);
+                        degree = sRole.role;
+                    } else {
+                        degree = "✗";
+                    }
+                
+                }
+            console.log("note pitch: "+tpitch + ((tpitch!==note.pitch)?(" (transposing!! original: "+note.pitch+")"):"")+ " | Chord pitch:" + curChord.pitch + " ==> position: " + p + " ==> color: " + color);
+            
+            }
+        }  
+        
+    // no current chord, so resetting the color
+    } else {
+        color = "black";
+    }
+
+    console.log("colorNotes : " + colorNotes + ", color: " + color);
+    console.log("nameNotes : " + nameNotes + ", text: " + degree);
+
+
+    if (colorNotes !== "none") {
+        note.color = (color != null) ? color : "black";
+    }
+    if (textType == "fingering") {
+        writeDegree(note, (nameNotes !== "none") ? degree : null);
+    } else {
+        // clear Fingering on that note
+        writeDegree(note, null);
+        // Memorize degree as lyrics
+        asLyrics.push((nameNotes !== "none") ? degree : null)
+    }
 
 }
 
