@@ -39,6 +39,9 @@ import "core.js" as Core
 /*  - 1.5.0: CR: New ToneSet support
 /*  - 1.5.0: CR: Allow for both b9 and #9 together (same for 11 and 13)
 /*  - 1.5.0: Bug: Wrong analyse when not all chords are on the same voice
+/*  - 1.5.1: MU4.4+ Compatibility
+/*  - 1.5.1: CR: Chord name can be "WT0" and "WT1
+/*  - 1.5.1: Improvments: See core.js 1.2.12
 /**********************************************/
 
 MuseScore {

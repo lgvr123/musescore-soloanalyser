@@ -35,6 +35,7 @@
 /*  - 1.3.0: CR: Support for Tone sets
 // /*  - 1.3.1: CR: Support for "β" chords
 /*  - 1.3.1: Bug: improved label of in and out notes of tonesets
+/*  - 1.3.1: CR: Chord can be "WT0" and "WT1"
 
 /**********************************************/
 // -----------------------------------------------------------------------
@@ -43,7 +44,7 @@
 var default_names = ["1", "b9", "2", "#9", "b11", "4", "#11", "(5)", "m6", "M6", "m7", "M7"];
 
 function checkVersion(expected) {
-    var version = "1.3.0";
+    var version = "1.3.1";
 
     var aV = version.split('.').map(function (v) {
         return parseInt(v);
@@ -64,6 +65,8 @@ function checkVersion(expected) {
 
 function chordFromText(source) {
 
+    if (source.toUpperCase()==="WT0") return chordForPitchSet("T0",[0,2,4,6,8,10]);
+    if (source.toUpperCase()==="WT1") return chordForPitchSet("T1",[0,2,4,6,8,10]);
     var pitchSet=source.match(/^(T[0-9]{1,2}|[A-G][#b]{0,2})?\[(([0-9te]+[,]*)+)\]$/);
     if (pitchSet!=null) return chordForPitchSet(pitchSet[1]?pitchSet[1]:"T0",pitchSet[2]);
 
@@ -75,7 +78,7 @@ function chordFromText(source) {
     console.log("chordFromText: cleaned: "+text);
     
     var betaChord=(text.match(/β/)>=0);
-    if (betaChord) text=text.replace(/β/g,"");
+    // if (betaChord) text=text.replace(/β/g,"");
 
     var rootbass = text.split("/");
     text = rootbass[0];
@@ -99,28 +102,36 @@ function chordFromText(source) {
     }
 
     // Chord type
-    var scale=null;
+    var chord;
 
-    // Bass and scale
-    var bassacc = null;
-    if (bass !== null) {
-        bassacc = getRootAccidental(bass);
-        if (bassacc.tpc !== null) {
-            var relpitch = (bassacc.tpc.pitch - rootacc.tpc.pitch + 12) % 12;
-            scale = scaleFromText(text, relpitch);
-        }
-    } 
-    if (scale === null)
-        scale = scaleFromText(text);
-    
-    // if (betaChord) {
-        // bassacc=rootacc;
+    // Types spéciaux d'accords
+    if (false && betaChord) {
+        /*// bassacc=rootacc;
         // bassacc.tpc++;
-    // }
+        // beta chord {0,3,6,9,11}
+        // beta1 chord {0,3,6,11}
+        // beta1 chord {0,6,11}
+        chord=betaChord(rootacc.tpc, name);*/
+    } 
+    // Types classiques d'accords
+    else {
+        // Bass and scale
+        var scale=null;
+        var bassacc = null;
+        if (bass !== null) {
+            bassacc = getRootAccidental(bass);
+            if (bassacc.tpc !== null) {
+                var relpitch = (bassacc.tpc.pitch - rootacc.tpc.pitch + 12) % 12;
+                scale = scaleFromText(text, relpitch);
+            }
+        } 
+        if (scale === null)
+            scale = scaleFromText(text);
+        
 
-    // var chord = new chordClass(tpc, text, n3, n5, n7, keys);
-    var chord = new chordClass(rootacc.tpc, name, scale, (bassacc !== null) ? bassacc.tpc : null);
-
+        // chord = new chordClass(tpc, text, n3, n5, n7, keys);
+        chord = new chordClass(rootacc.tpc, name, scale, (bassacc !== null) ? bassacc.tpc : null);
+    }
     console.log(">>>" + chord);
 
     return chord;

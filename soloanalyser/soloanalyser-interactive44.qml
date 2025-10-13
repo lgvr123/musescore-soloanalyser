@@ -1,11 +1,15 @@
+//DEBUG in 3.6.2...
+/*import QtQuick 2.9
+import QtQuick.Controls 2.2
+import MuseScore 3.0
+import QtQuick.Layouts 1.3
+import Qt.labs.settings 1.0
+*/
+// ...DEBUG
 import QtQuick
 import QtQuick.Controls
 import MuseScore 3.0
-// import QtQuick.Window 2.2
-import QtQuick.Dialogs
-// import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts
-// import Qt.labs.settings 1.0
 
 import "selectionhelper.js" as SelHelper
 import "notehelper.js" as NoteHelper
@@ -38,33 +42,41 @@ import "core.js" as Core
 /*  - 1.4.10: (see ChordAnalyser.js log 1.2.22)
 /*  - 1.4.11: (see ChordAnalyser.js log 1.2.23+24)
 /*  - 1.4.12: Better settings management
+/*  //- 1.4.12: Option to apply without saving the settings as default settings
+/*  - 1.5.0: CR: New color mode "outside" (draft)
+/*  - 1.5.0: CR: New ToneSet support
+/*  - 1.5.0: CR: Allow for both b9 and #9 together (same for 11 and 13)
+/*  - 1.5.0: Bug: Wrong analyse when not all chords are on the same voice
+/*  - 1.5.1: MU4.4+ Compatibility
+/*  - 1.5.1: CR: Chord name can be "WT0" and "WT1
+/*  - 1.5.1: Improvments: See core.js 1.2.12
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins.Solo Analyser." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.4.12"
+    version: "1.5.1"
 
     readonly property var pluginName: qsTr("Interactive")
 
     pluginType: "dialog"
-    width: mainRow.childrenRect.width + mainRow.anchors.leftMargin  + mainRow.anchors.rightMargin
-    height: mainRow.childrenRect.height + mainRow.anchors.topMargin  + mainRow.anchors.bottomMargin
+    width: mainRow.childrenRect.width + mainRow.anchors.leftMargin + mainRow.anchors.rightMargin
+    height: mainRow.childrenRect.height + mainRow.anchors.topMargin + mainRow.anchors.bottomMargin
 
     id: mainWindow
 
     //4.4 title: "Solo Analyser-Interactive"
     //4.4 thumbnailName: "logoSoloAnalyserInteractive.png"
     //4.4 categoryCode: "color-notes"
-    
 
-    Component.onCompleted : {
-        if (mscoreMajorVersion >= 4 && mscoreMajorVersion<=3) {
-            mainWindow.title = "Solo Analyser "+pluginName;
+
+    Component.onCompleted: {
+        if (mscoreMajorVersion >= 4 && mscoreMajorVersion <= 3) {
+            mainWindow.title = "Solo Analyser " + pluginName;
             mainWindow.thumbnailName = "logoSoloAnalyserInteractive.png";
             mainWindow.categoryCode = "color-notes";
         }
-    }    
+    }
 
     onRun: {
         // 1) Read config file
@@ -72,13 +84,11 @@ MuseScore {
 
         // 2) push to screen
 
-        console.log(settings.lookAhead+" -- "+typeof settings.lookAhead + " -- "+(settings.lookAhead=="true"));
-
         select(lstColorNote, settings.colorNotes);
         select(lstNameNote, settings.nameNotes);
         select(lstFormText, settings.textType);
 
-/*        rootColorChosser.color = settings.rootColor;
+        /*        rootColorChosser.color = settings.rootColor;
         bassColorChosser.color = settings.bassColor;
         chordColorChosser.color = settings.chordColor;
         scaleColorChosser.color = settings.scaleColor;
@@ -122,13 +132,13 @@ MuseScore {
         property var colorNotes: Core.defColorNotes
         property var nameNotes: Core.defNameNotes
         property var textType: Core.defTextType
-        
+
         property alias useBelowSymbols: chkUseBelowSymbols.checked
         property alias useAboveSymbols: chkUseAboveSymbols.checked
         property alias lookAhead: chkLookAhead.checked
         property alias lookBack: chkLookBack.checked
         property alias ignoreBrackettedChords: chkIgnoreBrackettedChords.checked
-        
+
     }
 
     GridLayout {
@@ -138,16 +148,15 @@ MuseScore {
         anchors.leftMargin: 20
         anchors.rightMargin: 20
         anchors.bottomMargin: 10
-        
-		columns: 2
-        columnSpacing: 5
 
+        columns: 2
+        columnSpacing: 5
 
         GroupBox {
             title: qsTranslate("GenericUI", "Rendering options...")
-                //Layout.margins: 5
-				Layout.alignment: Qt.AlignTop | Qt.AlignLeft
-				GridLayout {
+            //Layout.margins: 5
+            Layout.alignment: Qt.AlignTop | Qt.AlignLeft
+            GridLayout {
                 columnSpacing: 5
 
                 rowSpacing: 10
@@ -157,7 +166,7 @@ MuseScore {
                 Layout.fillWidth: true
 
                 NiceLabel {
-                    text: qsTranslate("GenericUI", "Note coloring  :")+" "
+                    text: qsTranslate("GenericUI", "Note coloring  :") + " "
                     //Tooltip.text : qsTranslate("GenericUI", "Color all notes or only the ones defined by the chord");
                     Layout.alignment: Qt.AlignLeft
                     Layout.fillHeight: false
@@ -166,6 +175,7 @@ MuseScore {
                 NiceComboBox {
                     //Layout.fillWidth : true
                     id: lstColorNote
+                    property var value: model[currentIndex]
                     model: [{
                             'value': "none",
                             'text': qsTranslate("GenericUI", "None - Don't color notes")
@@ -175,13 +185,16 @@ MuseScore {
                         }, {
                             'value': "all",
                             'text': qsTranslate("GenericUI", "Scale - Color the notes defined by the scale")
+                        }, {
+                            'value': "outside",
+                            'text': qsTranslate("GenericUI", "Outside only - Color the non chord notes")
                         }
                     ]
 
                 }
 
                 NiceLabel {
-                    text: qsTranslate("GenericUI", "Note name  :")+" "
+                    text: qsTranslate("GenericUI", "Note name  :") + " "
                     //Tooltip.text : qsTranslate("GenericUI", "Name all notes or only the ones defined by the chord");
                     Layout.alignment: Qt.AlignLeft
                     Layout.fillHeight: false
@@ -190,6 +203,7 @@ MuseScore {
                 NiceComboBox {
                     //Layout.fillWidth : true
                     id: lstNameNote
+                    enabled: get(lstColorNote) !== "outside"
                     model: [{
                             'value': "none",
                             'text': qsTranslate("GenericUI", "None - Don't name notes")
@@ -205,7 +219,7 @@ MuseScore {
                 }
 
                 NiceLabel {
-                    text: qsTranslate("GenericUI", "Root :")+" "
+                    text: qsTranslate("GenericUI", "Root :") + " "
                 }
                 Rectangle {
                     id: rootColorChosser
@@ -223,7 +237,7 @@ MuseScore {
                 }
 
                 NiceLabel {
-                    text: qsTranslate("GenericUI", "Bass :")+" "
+                    text: qsTranslate("GenericUI", "Bass :") + " "
                 }
                 Rectangle {
                     id: bassColorChosser
@@ -241,7 +255,7 @@ MuseScore {
                 }
 
                 NiceLabel {
-                    text: qsTranslate("GenericUI", "Chord :")+" "
+                    text: qsTranslate("GenericUI", "Chord :") + " "
                 }
                 Rectangle {
                     id: chordColorChosser
@@ -259,7 +273,7 @@ MuseScore {
                 }
 
                 NiceLabel {
-                    text: qsTranslate("GenericUI", "Altered :")+" "
+                    text: qsTranslate("GenericUI", "Altered :") + " "
                 }
                 Rectangle {
                     id: alteredColorChosser
@@ -277,7 +291,7 @@ MuseScore {
                 }
 
                 NiceLabel {
-                    text: qsTranslate("GenericUI", "Scale :")+" "
+                    text: qsTranslate("GenericUI", "Scale :") + " "
                 }
                 Rectangle {
                     id: scaleColorChosser
@@ -313,7 +327,7 @@ MuseScore {
                 }*/
 
                 NiceLabel {
-                    text: qsTranslate("GenericUI", "Text form  :")+" "
+                    text: qsTranslate("GenericUI", "Text form  :") + " "
                 }
 
                 NiceComboBox {
@@ -333,14 +347,14 @@ MuseScore {
 
         GroupBox {
             title: qsTranslate("GenericUI", "Analyze options...")
-				Layout.alignment: Qt.AlignTop | Qt.AlignRight
+            Layout.alignment: Qt.AlignTop | Qt.AlignRight
             GridLayout {
 
                 columnSpacing: 10
                 rowSpacing: 10
-	                Layout.fillWidth: true
-			
-				columns: 1
+                Layout.fillWidth: true
+
+                columns: 1
 
                 Flow {
                     SmallCheckBox {
@@ -388,7 +402,7 @@ MuseScore {
                 Flow {
                     SmallCheckBox {
                         id: chkIgnoreBrackettedChords
-                        checked:Core.defIgnoreBrackettedChords
+                        checked: Core.defIgnoreBrackettedChords
                         text: qsTranslate("GenericUI", "Ignore chord names in parentheses")
                         hoverEnabled: true
                         ToolTip.visible: hovered
@@ -400,19 +414,17 @@ MuseScore {
         }
 
         // Item { // spacer // DEBUG Item/Rectangle
-            // implicitWidth: 10
-            // Layout.fillHeight: true
+        // implicitWidth: 10
+        // Layout.fillHeight: true
         // }
         RowLayout {
-			
-			
 
             id: panButtons
             Layout.fillWidth: true
             Layout.fillHeight: false
             Layout.margins: 0
-			Layout.columnSpan: 2
-            Button {
+            Layout.columnSpan: 2
+            CompatibleButton {
                 implicitHeight: buttonBox.contentItem.height
 
                 text: qsTranslate("GenericUI", "Reset")
@@ -421,7 +433,7 @@ MuseScore {
                     settings.bassColor = Core.defBassColor;
                     settings.chordColor = Core.defChordColor;
                     settings.scaleColor = Core.defScaleColor;
-                    settings.errorColor = Core.defErrorColor;
+                    //settings.errorColor = Core.defErrorColor;
                     settings.alteredColor = Core.defAlteredColor;
                     settings.colorNotes = Core.defColorNotes;
                     settings.nameNotes = Core.defNameNotes;
@@ -451,6 +463,7 @@ MuseScore {
                 ToolTip.visible: hovered
                 ToolTip.text: qsTranslate("GenericUI", "Reset to default values")
 
+                DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
             }
 
             Item { // spacer // DEBUG Item/Rectangle
@@ -459,81 +472,153 @@ MuseScore {
             }
 
             DialogButtonBox {
-                standardButtons: DialogButtonBox.Close
                 id: buttonBox
 
                 background.opacity: 0 // hide default white background
 
-                Button {
-                    text: qsTranslate("GenericUI", "Apply")
+                CompatibleButton {
+                    text: qsTranslate("GenericUI", "Apply 🖫")
+                    id: btnApply
                     DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
                 }
-                Button {
+                /*CompatibleButton {
+                text: qsTranslate("GenericUI", "Apply")
+                id: btnApplyNoStore
+                DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
+                }*/
+                CompatibleButton {
                     text: qsTranslate("GenericUI", "Clear")
                     id: btnClear
                     DialogButtonBox.buttonRole: DialogButtonBox.ResetRole
                 }
 
-                onAccepted: {
-                    // push values to backend
-                    settings.rootColor = rootColorChosser.color;
-                    settings.bassColor = bassColorChosser.color;
-                    settings.chordColor = chordColorChosser.color;
-                    settings.scaleColor = scaleColorChosser.color;
-                    settings.alteredColor = alteredColorChosser.color;
-                    // settings.errorColor = errorColorChosser.color;
-
-                    settings.colorNotes = get(lstColorNote);
-                    settings.nameNotes = get(lstNameNote);
-                    settings.textType = get(lstFormText);
-
-                    settings.useBelowSymbols = chkUseBelowSymbols.checked;
-                    settings.useAboveSymbols = chkUseAboveSymbols.checked;
-                    settings.lookAhead = chkLookAhead.checked;
-                    settings.lookBack = chkLookBack.checked;
-                    settings.ignoreBrackettedChords = chkIgnoreBrackettedChords.checked;
-
-                    // save values
-                    // AUTOMATIC
-
-                    // execute
-                    Core.doAnalyse();
-                    //Qt.quit();
-                    mainWindow.parent.Window.window.close();
-                  
+                CompatibleButton {
+                    text: qsTranslate("Ms::MuseScore", "Cancel")
+                    DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
                 }
 
-                onClicked: {
+                onClicked: function (button) {
                     console.log("~~~~~~~~~~~~" + button.text + "~~~~~~~~~~~~");
                     if (button == btnClear) {
                         Core.clearAnalyse();
                         //Qt.quit();
                         mainWindow.parent.Window.window.close();
+                    } else if ((button == btnApply) /*|| (button==btnApplyNoStore)*/) {
+                        if (button == btnApply) {
+                            // push values to backend
+                            settings.rootColor = rootColorChosser.color;
+                            settings.bassColor = bassColorChosser.color;
+                            settings.chordColor = chordColorChosser.color;
+                            settings.scaleColor = scaleColorChosser.color;
+                            settings.alteredColor = alteredColorChosser.color;
+                            // settings.errorColor = errorColorChosser.color;
+
+                            settings.colorNotes = get(lstColorNote);
+
+                            settings.nameNotes = get(lstNameNote);
+                            settings.textType = get(lstFormText);
+
+                            settings.useBelowSymbols = chkUseBelowSymbols.checked;
+                            settings.useAboveSymbols = chkUseAboveSymbols.checked;
+                            settings.lookAhead = chkLookAhead.checked;
+                            settings.lookBack = chkLookBack.checked;
+                            settings.ignoreBrackettedChords = chkIgnoreBrackettedChords.checked;
+
+                            // save values
+                            // AUTOMATIC
+
+                        }
+
+                        // execute
+                        Core.doAnalyse();
+                        //Qt.quit();
+                        mainWindow.parent.Window.window.close();
+
+                    } else if (button == btnClear) {
+                        Core.clearAnalyse();
+                        //Qt.quit();
+                        mainWindow.parent.Window.window.close();
                     }
                 }
+
                 onRejected: {
-                  //Qt.quit()
-                  mainWindow.parent.Window.window.close();
-                  }
+                    //Qt.quit()
+                    mainWindow.parent.Window.window.close();
+                }
 
             }
         }
 
     }
 
-    ColorDialog {
+    /*ColorDialog {
+    id: colorDialog
+    title: qsTranslate("GenericUI", "Please choose a color")
+    property var target
+    onAccepted: {
+    console.log("You chose: " + colorDialog.color)
+    if (target !== undefined)
+    target.color = colorDialog.color;
+    }
+    onRejected: {
+    console.log("Canceled")
+    }
+    // Component.onCompleted: visible = true
+    }*/
+
+    Dialog {
         id: colorDialog
         title: qsTranslate("GenericUI", "Please choose a color")
         property var target
-        onAccepted: {
-            console.log("You chose: " + colorDialog.color)
-            if (target !== undefined)
-                target.color = colorDialog.color;
+        property var color
+        
+        modal: true
+
+        width: 300
+        height: 200
+
+        ColumnLayout {
+            id: colorDialogGrid
+            anchors.margins: 2
+            anchors.fill: parent
+            spacing: 2
+
+            TextField {
+                Layout.fillWidth: true
+                id: textColor
+                Layout.preferredWidth: 100
+                text: (colorDialog.color) ? colorDialog.color : ""
+                enabled: true
+                placeholderText: "#000000"
+            }
+
+            DialogButtonBox {
+                Layout.fillWidth: true
+
+                CompatibleButton {
+                    text: qsTranslate("GenericUI", "Apply")
+                    DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
+                }
+
+                CompatibleButton {
+                    text: qsTranslate("Ms::MuseScore", "Cancel")
+                    DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
+                }
+
+                onAccepted: {
+                    console.log("You chose: " + textColor.text)
+                    if (colorDialog.target !== undefined /*&& textColor.text!==""*/)
+                        colorDialog.target.color = textColor.text;
+                    colorDialog.close();
+                }
+                onRejected: {
+                    console.log("Canceled");
+                    colorDialog.close();
+                }
+
+            }
         }
-        onRejected: {
-            console.log("Canceled")
-        }
-        // Component.onCompleted: visible = true
+
     }
 
 }

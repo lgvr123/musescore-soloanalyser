@@ -38,13 +38,19 @@ import "core.js" as Core
 /*  - 1.4.11: (see ChordAnalyser.js log 1.2.23+24)
 /*  - 1.4.12: Better settings management
 /*  //- 1.4.12: Option to apply without saving the settings as default settings
-/*  - 1.4.12: CR: New coloring mode "outside"
+/*  - 1.5.0: CR: New color mode "outside" (draft)
+/*  - 1.5.0: CR: New ToneSet support
+/*  - 1.5.0: CR: Allow for both b9 and #9 together (same for 11 and 13)
+/*  - 1.5.0: Bug: Wrong analyse when not all chords are on the same voice
+/*  - 1.5.1: MU4.4+ Compatibility
+/*  - 1.5.1: CR: Chord name can be "WT0" and "WT1
+/*  - 1.5.1: Improvments: See core.js 1.2.12
 /**********************************************/
 
 MuseScore {
     menuPath: "Plugins.Solo Analyser." + pluginName
     description: "Colors and names the notes based on their role if chords/harmonies."
-    version: "1.4.12"
+    version: "1.5.1"
 
     readonly property var pluginName: qsTr("Interactive")
 
@@ -54,8 +60,13 @@ MuseScore {
 
     id: mainWindow
 
+    //4.4 title: "Solo Analyser-Interactive"
+    //4.4 thumbnailName: "logoSoloAnalyserInteractive.png"
+    //4.4 categoryCode: "color-notes"
+
+
     Component.onCompleted : {
-        if (mscoreMajorVersion >= 4) {
+        if (mscoreMajorVersion >= 4 && mscoreMajorVersion <= 3) {
             mainWindow.title = "Solo Analyser "+pluginName;
             mainWindow.thumbnailName = "logoSoloAnalyserInteractive.png";
             mainWindow.categoryCode = "color-notes";
@@ -68,7 +79,6 @@ MuseScore {
 
         // 2) push to screen
         
-        console.log(settings.lookAhead+" -- "+typeof settings.lookAhead + " -- "+(settings.lookAhead=="true"));
 
         select(lstColorNote, settings.colorNotes);
         select(lstNameNote, settings.nameNotes);
@@ -137,7 +147,6 @@ MuseScore {
         
 		columns: 2
         columnSpacing: 5
-
 
         GroupBox {
             title: qsTranslate("GenericUI", "Rendering options...")
@@ -406,14 +415,12 @@ MuseScore {
         // }
         RowLayout {
 			
-			
-
             id: panButtons
             Layout.fillWidth: true
             Layout.fillHeight: false
             Layout.margins: 0
 			Layout.columnSpan: 2
-            Button {
+            CompatibleButton {
                 implicitHeight: buttonBox.contentItem.height
 
                 text: qsTranslate("GenericUI", "Reset")
@@ -422,7 +429,7 @@ MuseScore {
                     settings.bassColor = Core.defBassColor;
                     settings.chordColor = Core.defChordColor;
                     settings.scaleColor = Core.defScaleColor;
-                    settings.errorColor = Core.defErrorColor;
+                    //settings.errorColor = Core.defErrorColor;
                     settings.alteredColor = Core.defAlteredColor;
                     settings.colorNotes = Core.defColorNotes;
                     settings.nameNotes = Core.defNameNotes;
@@ -461,35 +468,38 @@ MuseScore {
             }
 
             DialogButtonBox {
-                standardButtons: DialogButtonBox.Close
                 id: buttonBox
 
                 background.opacity: 0 // hide default white background
 
-                Button {
+                CompatibleButton {
                     text: qsTranslate("GenericUI", "Apply 🖫")
                     id: btnApply
                     DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
                 }
-                /*Button {
+                /*CompatibleButton {
                     text: qsTranslate("GenericUI", "Apply")
                     id: btnApplyNoStore
                     DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
                 }*/
-                Button {
+                CompatibleButton {
                     text: qsTranslate("GenericUI", "Clear")
                     id: btnClear
                     DialogButtonBox.buttonRole: DialogButtonBox.ResetRole
                 }
 
+                CompatibleButton {
+                    text: qsTranslate("Ms::MuseScore", "Cancel")
+                    DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
+                }
 
-                onClicked: {
+                onClicked: function (button) {
                     console.log("~~~~~~~~~~~~" + button.text + "~~~~~~~~~~~~");
                     if (button == btnClear) {
                         Core.clearAnalyse();
                         //Qt.quit();
                         mainWindow.parent.Window.window.close();
-                    } else if ((button==btnApply) || (button==btnApplyNoStore)) {
+                    } else if ((button == btnApply) /*|| (button==btnApplyNoStore)*/) {
                         if (button==btnApply) {
                             // push values to backend
                             settings.rootColor = rootColorChosser.color;
@@ -500,6 +510,7 @@ MuseScore {
                             // settings.errorColor = errorColorChosser.color;
 
                             settings.colorNotes = get(lstColorNote);
+
                             settings.nameNotes = get(lstNameNote);
                             settings.textType = get(lstFormText);
 
@@ -519,9 +530,13 @@ MuseScore {
                         //Qt.quit();
                         mainWindow.parent.Window.window.close();
                       
+                    } else if (button == btnClear) {
+                        Core.clearAnalyse();
+                        //Qt.quit();
+                        mainWindow.parent.Window.window.close();
+                    }
                     }
 
-                }
                 onRejected: {
                   //Qt.quit()
                   mainWindow.parent.Window.window.close();
