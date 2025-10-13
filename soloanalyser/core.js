@@ -27,6 +27,7 @@
 /*  - 1.2.11: Bug: Wrong analyse when not all chords are on the same voice
 /*  - 1.2.12: Bug: improved label of in and out notes of tonesets
 /*  - 1.2.12: Improvment: Merge note analyse function from Core.js and scaleAnalyser
+/*  - 1.2.12: Align "out" symbol between soloAnalyser and scaleAnalyser
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -358,7 +359,7 @@ function analyseNote(note,colorNotes, nameNotes, curChord, asLyrics) {
             
             if (curChord.outside.indexOf(p) >= 0) {
                 color = errorColor;
-                if (!degree) degree="out"
+                if (!degree) degree="✗"
             } else if (curChord.keys.indexOf(p) >= 0) {
                 // Si dans la gamme => pas outside
                 color="black";

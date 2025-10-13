@@ -23,6 +23,7 @@ import "core.js" as Core
 /*  - 1.1.0: Merge note analyse function from Core.js and scaleAnalyser
 /**********************************************/
 
+// TODO: utiliser le ChordHelper.chordForPitchSet
 // TODO: permettre de choisir une couleur, autre que les couleurs du mode "Accord"
 
 MuseScore {
