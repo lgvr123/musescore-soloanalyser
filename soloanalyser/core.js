@@ -1,7 +1,7 @@
 
 /**********************
 /* Parking B - MuseScore - Solo Analyser core plugin
-/* v1.2.12
+/* v1.2.13
 /* ChangeLog:
 /* 	- 1.0.0: Initial release
 /* 	- 1.1.0: New alteredColor
@@ -28,7 +28,9 @@
 /*  - 1.2.12: Bug: improved label of in and out notes of tonesets
 /*  - 1.2.12: Improvment: Merge note analyse function from Core.js and scaleAnalyser
 /*  - 1.2.12: Align "out" symbol between soloAnalyser and scaleAnalyser
-/*  - 1.2.12: Bug: errorColor not correctly defined in single note analysis
+/*  - 1.2.12: Bug: errorColor not correctly defined in single note analysis	 
+/*  - 1.2.13: CR: don't analyse invisible notes
+/*  - 1.2.13: Bug: If the root note is not part of the scale then it was still coloured and marked as degree 1 instead of being marked as outside
 /**********************************************/
 
 var degrees = '1;2;3;4;5;6;7;8;9;11;13';
@@ -388,12 +390,18 @@ function analyseNote(note,colorNotes, nameNotes, curChord, asLyrics) {
             // modes traditionnels
             color = sRole ? sRole.color : undefined; // undefined s'il faut utiliser les couleurs par défaut
 
-            // le toot: traitement spécial
+            console.log("degree "+p+") sR: " + ((sRole) ? sRole.role : "/") + ", cR: " + ((cRole) ? cRole.role : "/"));
+            
+            //14/1/26: Même traitement pour la root que pour les autres degrés
+            //Car en mode scale, une scale "T2[4,5]" qui contient F# et G# va donner une couleur
+            //et un degré=1 à D uniquement parce que D est la root via "T2". Mais D n'est pas
+            //le toneset => il ne doit avoir ni couleur ni nom
+            /*
+            // le root: traitement spécial
             if (p == 0) {
                 if (typeof color === "undefined")
                     color = rootColor;
                 
-                console.log("0) sR: " + ((sRole) ? sRole.role : "/") + ", cR: " + ((cRole) ? cRole.role : "/"));
                 if (sRole)
                     degree = sRole.role 
                 else if (cRole)
@@ -402,14 +410,16 @@ function analyseNote(note,colorNotes, nameNotes, curChord, asLyrics) {
             }
             
             // les autres: traitement générique
-            else {
+            else {*/
                 // Role identifié
                 if (cRole !== undefined) {
                     console.log("ROLE FOUND : " + cRole.note + "-" + cRole.role);
                     degree = cRole.role;
                 
                     if (!color) {
-                        if ((curChord.bass != null && p == curChord.bass.key)) {
+                        if (p==0) {
+                            color = rootColor;
+                        } else if ((curChord.bass != null && p == curChord.bass.key)) {
                             color = bassColor;
                         } else if ((degree.indexOf("b") == 0) || (degree.indexOf("#") == 0)) {
                             color = alteredColor;
@@ -445,7 +455,7 @@ function analyseNote(note,colorNotes, nameNotes, curChord, asLyrics) {
                 }
             console.log("note pitch: "+tpitch + ((tpitch!==note.pitch)?(" (transposing!! original: "+note.pitch+")"):"")+ " | Chord pitch:" + curChord.pitch + " ==> position: " + p + " ==> color: " + color);
             
-            }
+            /*}*/
         }  
         
     // no current chord, so resetting the color
@@ -460,13 +470,13 @@ function analyseNote(note,colorNotes, nameNotes, curChord, asLyrics) {
     if (colorNotes !== "none") {
         note.color = (color != null) ? color : "black";
     }
-    if (textType == "fingering") {
+    if (textType == "fingering" && note.visible) { // uniquement si la note est visible
         writeDegree(note, (nameNotes !== "none") ? degree : null);
     } else {
         // clear Fingering on that note
         writeDegree(note, null);
         // Memorize degree as lyrics
-        asLyrics.push((nameNotes !== "none") ? degree : null)
+        asLyrics.push((nameNotes !== "none" && note.visible) ? degree : null)
     }
 
 }

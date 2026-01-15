@@ -21,6 +21,8 @@ import "core.js" as Core
 /*  - 1.1.0: Custom scales and tone rows
 /*  - 1.1.0: Color shade coloring mode
 /*  - 1.1.0: Merge note analyse function from Core.js and scaleAnalyser
+/*  - 1.1.1: Bug in the regexp of the tonerow analyse
+/*  - 1.1.1: Bug tonerow conversion to scale
 /**********************************************/
 
 // TODO: utiliser le ChordHelper.chordForPitchSet
@@ -720,10 +722,11 @@ MuseScore {
                         // uniquement pcq on veut ajouter des couleurs
                         var custom = txtCustom.text;
                         custom=custom.replace(/t/g,'10').replace(/e/g,'11');
-                        custom = custom.match(/^\s*(\[{)?((\d+\s*,??\s*)+),?(\]})?\s*$/);
-                        if (custom && custom.length >= 4) {
-                            console.log(custom);
-                            data = custom[2].split(/\s*,\s*/);
+                        custom = custom.match(/^\s*[\[{]?((\d+\s*,??\s*)+),?[\]}]?\s*$/);
+                        console.log("Custom parsing: "+JSON.stringify(custom));
+                        if (custom && custom.length >= 3) {
+                            console.log(custom[1]);
+                            data = custom[1].split(/\s*,\s*/);
                             data = data
                                 .map(function (e) {
                                 return parseInt(e);
@@ -964,12 +967,13 @@ MuseScore {
         var sColor=Qt.rgba(rcColor.r,rcColor.g,rcColor.b,rcColor.a); // Clone the color to not affect the color picker
         sColor.hslLightness = sColor.hslLightness * 1,2345; // on part de plus clair (telle que la 3ème note soit à la couleur demandée)
 
-        var wName = (notes.length >= 2) ? (typeof notes[1] === "string") : false;
-        var wColor = (wName && notes.length >= 3) ? (("" + notes[2]).substr(0, 1) === "#") : false;
+        var wName = (notes && notes.length >= 2) ? (typeof notes[1] === "string") : false;
+        var wColor = (wName && notes && notes.length >= 3) ? (("" + notes[2]).substr(0, 1) === "#") : false;
+        
 
         var inc = (wName ? (wColor ? 3 : 2) : 1);
 
-        ChordHelper.pushToNotes(chord, notes[0], notes[1], (wColor ? notes[2] : undefined));
+        //ChordHelper.pushToNotes(chord, notes[0],  wName ? notes[1] : "0" , (wColor ? notes[2] : undefined));
         for (var i = 0; i < notes.length; i = i + inc) {
             var degree = notes[i];
             var label = wName ? notes[i + 1] : "" + i;
@@ -983,7 +987,8 @@ MuseScore {
             }
             keys.push(degree);
             ChordHelper.pushToNotes(all, degree, label, color);
-            if (label.includes("3") || label.includes("5") || label.includes("7")) {
+            if (!shade && (label.includes("3") || label.includes("5") || label.includes("7"))) {
+                // En mode <>"shade" j'ajoute les notes de rôle 3,5,7 à une définition d'accord
                 ChordHelper.pushToNotes(chord, degree, label, color);
             }
 

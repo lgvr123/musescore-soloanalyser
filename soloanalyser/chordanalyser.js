@@ -641,7 +641,7 @@ function chordForPitchSet(transposition,pitches) {
     var rootacc=getRootAccidental(rootText);
     
     var scale=new scaleClass(pitches,chordnotes,chordnotes,outside)
-    var chord = new chordClass(rootacc.tpc, "T"+transposition+"["+pitches+"]", scale, null);
+    var chord = new chordClass(rootacc.tpc, transposition+"["+pitches+"]", scale, null);
 
     console.log(">>>" + chord);
     
